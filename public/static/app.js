@@ -10,13 +10,26 @@ class SEODashboard {
             searchVolume: []
         };
         this.charts = {};
+        this.user = JSON.parse(localStorage.getItem('user') || 'null');
+        this.accessToken = localStorage.getItem('accessToken');
+        this.refreshToken = localStorage.getItem('refreshToken');
         this.init();
     }
 
     init() {
+        // Check authentication
+        if (!this.accessToken) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        // Setup axios interceptors for authentication
+        this.setupAxiosInterceptors();
+        
         this.render();
         this.attachEventListeners();
         this.loadDashboardData();
+        this.loadUserInfo();
     }
 
     render() {
@@ -37,9 +50,21 @@ class SEODashboard {
                             <button id="refreshBtn" class="px-4 py-2 bg-brand-teal text-white rounded-lg hover:opacity-90 transition">
                                 <i class="fas fa-sync-alt mr-2"></i>Refresh Data
                             </button>
-                            <button id="settingsBtn" class="px-4 py-2 glass-card rounded-lg hover:bg-white hover:bg-opacity-10 transition">
-                                <i class="fas fa-cog"></i>
-                            </button>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-400">
+                                    <i class="fas fa-user-circle mr-1"></i>
+                                    <span id="userName">${this.user?.name || 'User'}</span>
+                                </span>
+                                <button id="teamBtn" class="px-3 py-2 glass-card rounded-lg hover:bg-white hover:bg-opacity-10 transition" title="Team Management">
+                                    <i class="fas fa-users"></i>
+                                </button>
+                                <button id="profileBtn" class="px-3 py-2 glass-card rounded-lg hover:bg-white hover:bg-opacity-10 transition" title="Profile">
+                                    <i class="fas fa-user-cog"></i>
+                                </button>
+                                <button id="logoutBtn" class="px-3 py-2 glass-card rounded-lg hover:bg-white hover:bg-opacity-10 transition text-red-400" title="Logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -151,9 +176,21 @@ class SEODashboard {
             this.loadDashboardData();
         });
 
-        // Settings button
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            document.getElementById('settingsModal').classList.remove('hidden');
+        // Logout button
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                this.logout();
+            }
+        });
+
+        // Team button
+        document.getElementById('teamBtn')?.addEventListener('click', () => {
+            this.showTeamManagement();
+        });
+
+        // Profile button
+        document.getElementById('profileBtn')?.addEventListener('click', () => {
+            this.showUserProfile();
         });
     }
 
@@ -740,6 +777,272 @@ class SEODashboard {
         // For now, just close the modal
         this.closeSettings();
         alert('Settings saved! (Note: In production, credentials should be configured server-side)');
+    }
+
+    // Authentication Methods
+    setupAxiosInterceptors() {
+        // Request interceptor to add token
+        axios.interceptors.request.use(
+            (config) => {
+                if (this.accessToken) {
+                    config.headers.Authorization = `Bearer ${this.accessToken}`;
+                }
+                return config;
+            },
+            (error) => Promise.reject(error)
+        );
+
+        // Response interceptor for token refresh
+        axios.interceptors.response.use(
+            (response) => response,
+            async (error) => {
+                const originalRequest = error.config;
+
+                if (error.response?.status === 401 && !originalRequest._retry) {
+                    originalRequest._retry = true;
+                    
+                    const refreshed = await this.refreshAccessToken();
+                    if (refreshed) {
+                        originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
+                        return axios(originalRequest);
+                    } else {
+                        // Refresh failed, redirect to login
+                        this.logout();
+                    }
+                }
+
+                return Promise.reject(error);
+            }
+        );
+    }
+
+    async refreshAccessToken() {
+        if (!this.refreshToken) return false;
+
+        try {
+            const response = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refreshToken: this.refreshToken })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                localStorage.setItem('accessToken', data.tokens.accessToken);
+                localStorage.setItem('refreshToken', data.tokens.refreshToken);
+                this.accessToken = data.tokens.accessToken;
+                this.refreshToken = data.tokens.refreshToken;
+                return true;
+            }
+        } catch (error) {
+            console.error('Token refresh error:', error);
+        }
+
+        return false;
+    }
+
+    async loadUserInfo() {
+        try {
+            const response = await axios.get('/api/auth/me');
+            if (response.data) {
+                this.user = response.data.user;
+                this.team = response.data.team;
+                localStorage.setItem('user', JSON.stringify(this.user));
+                
+                // Update UI with user info
+                const userNameEl = document.getElementById('userName');
+                if (userNameEl) {
+                    userNameEl.textContent = this.user.name;
+                }
+                
+                // Show team badge if user has admin/manager role
+                if (['admin', 'manager'].includes(this.user.role)) {
+                    const teamBtn = document.getElementById('teamBtn');
+                    if (teamBtn) {
+                        teamBtn.innerHTML = `<i class="fas fa-users"></i> <span class="text-xs">${this.user.role}</span>`;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load user info:', error);
+        }
+    }
+
+    logout() {
+        // Call logout API
+        if (this.refreshToken) {
+            fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ refreshToken: this.refreshToken })
+            }).catch(console.error);
+        }
+
+        // Clear local storage
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        
+        // Redirect to login
+        window.location.href = '/login';
+    }
+
+    async showTeamManagement() {
+        // Load team members
+        try {
+            const response = await axios.get('/api/auth/team/members');
+            const members = response.data.members;
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center';
+            modal.innerHTML = `
+                <div class="absolute inset-0 bg-black bg-opacity-50" onclick="this.parentElement.remove()"></div>
+                <div class="relative w-full max-w-4xl glass-card rounded-lg p-6 max-h-[80vh] overflow-y-auto">
+                    <h2 class="text-2xl font-bold mb-4">Team Management</h2>
+                    
+                    ${this.user.role === 'admin' || this.user.role === 'manager' ? `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">Invite Team Member</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="inviteEmail" placeholder="email@example.com" 
+                                class="flex-1 px-3 py-2 bg-gray-800 rounded border border-gray-600">
+                            <select id="inviteRole" class="px-3 py-2 bg-gray-800 rounded border border-gray-600">
+                                <option value="member">Member</option>
+                                <option value="manager">Manager</option>
+                                ${this.user.role === 'admin' ? '<option value="admin">Admin</option>' : ''}
+                            </select>
+                            <button onclick="dashboard.inviteTeamMember()" 
+                                class="px-4 py-2 bg-brand-orange text-white rounded hover:opacity-90">
+                                <i class="fas fa-paper-plane mr-2"></i>Invite
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <h3 class="text-lg font-semibold mb-3">Team Members</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-600">
+                                    <th class="text-left py-2">Name</th>
+                                    <th class="text-left py-2">Email</th>
+                                    <th class="text-left py-2">Role</th>
+                                    <th class="text-left py-2">Last Login</th>
+                                    <th class="text-left py-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${members.map(member => `
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-3">${member.name}</td>
+                                        <td class="py-3">${member.email}</td>
+                                        <td class="py-3">
+                                            <span class="px-2 py-1 text-xs rounded ${
+                                                member.role === 'admin' ? 'bg-red-900 text-red-300' :
+                                                member.role === 'manager' ? 'bg-yellow-900 text-yellow-300' :
+                                                'bg-gray-700 text-gray-300'
+                                            }">
+                                                ${member.role.toUpperCase()}
+                                            </span>
+                                        </td>
+                                        <td class="py-3">${member.last_login ? new Date(member.last_login).toLocaleDateString() : 'Never'}</td>
+                                        <td class="py-3">
+                                            ${this.user.role === 'admin' && member.id !== this.user.id ? `
+                                                <button onclick="dashboard.changeUserRole(${member.id}, '${member.role}')" 
+                                                    class="text-brand-teal hover:underline">
+                                                    Change Role
+                                                </button>
+                                            ` : '-'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <button onclick="this.closest('.fixed').remove()" 
+                        class="mt-6 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600">
+                        Close
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } catch (error) {
+            console.error('Failed to load team members:', error);
+            alert('Failed to load team members');
+        }
+    }
+
+    async inviteTeamMember() {
+        const email = document.getElementById('inviteEmail').value;
+        const role = document.getElementById('inviteRole').value;
+
+        if (!email) {
+            alert('Please enter an email address');
+            return;
+        }
+
+        try {
+            const response = await axios.post('/api/auth/team/invite', { email, role });
+            if (response.data.success) {
+                alert(`Invitation sent to ${email}`);
+                document.getElementById('inviteEmail').value = '';
+                // In production, the invitation link would be sent via email
+                console.log('Invitation token:', response.data.invitationToken);
+            }
+        } catch (error) {
+            console.error('Failed to send invitation:', error);
+            alert('Failed to send invitation');
+        }
+    }
+
+    showUserProfile() {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center';
+        modal.innerHTML = `
+            <div class="absolute inset-0 bg-black bg-opacity-50" onclick="this.parentElement.remove()"></div>
+            <div class="relative w-full max-w-md glass-card rounded-lg p-6">
+                <h2 class="text-2xl font-bold mb-4">User Profile</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Name</label>
+                        <p class="text-lg">${this.user.name}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Email</label>
+                        <p class="text-lg">${this.user.email}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Role</label>
+                        <p class="text-lg capitalize">${this.user.role}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Team</label>
+                        <p class="text-lg">${this.team?.name || 'No team'}</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Member Since</label>
+                        <p class="text-lg">${new Date(this.user.created_at).toLocaleDateString()}</p>
+                    </div>
+                </div>
+                
+                <button onclick="this.closest('.fixed').remove()" 
+                    class="mt-6 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 w-full">
+                    Close
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 }
 

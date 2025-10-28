@@ -4,12 +4,17 @@ import { serveStatic } from 'hono/cloudflare-workers'
 import { logger } from 'hono/logger'
 import { DataForSEOService } from './dataforseo-service'
 import { advancedRoutes } from './advanced-routes'
+import { authRoutes } from './auth-routes'
+import { requireAuth, optionalAuth } from './auth-middleware'
 
 // Types
 type Bindings = {
+  DB: D1Database
   DATAFORSEO_LOGIN: string
   DATAFORSEO_PASSWORD: string
   DASHBOARD_API_KEY: string
+  JWT_SECRET?: string
+  JWT_REFRESH_SECRET?: string
   SEO_CACHE?: KVNamespace
 }
 
@@ -27,13 +32,16 @@ app.use('/api/*', cors({
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/favicon.ico', serveStatic({ path: './public/favicon.ico' }))
 
-// Mount advanced SEO routes
+// Mount authentication routes
+app.route('/api/auth', authRoutes)
+
+// Mount advanced SEO routes (protected)
 app.route('/api/seo/advanced', advancedRoutes)
 
-// API Routes
+// API Routes (protected with authentication)
 
-// Get SERP results for a keyword
-app.post('/api/seo/serp', async (c) => {
+// Get SERP results for a keyword (requires authentication)
+app.post('/api/seo/serp', requireAuth, async (c) => {
   try {
     const body = await c.req.json()
     const { keyword, location = 'United States', language = 'English', device = 'desktop' } = body
@@ -69,8 +77,8 @@ app.post('/api/seo/serp', async (c) => {
   }
 })
 
-// Get keyword suggestions
-app.post('/api/seo/keywords', async (c) => {
+// Get keyword suggestions (requires authentication)
+app.post('/api/seo/keywords', requireAuth, async (c) => {
   try {
     const body = await c.req.json()
     const { seed, location = 'United States', language = 'English' } = body
@@ -90,8 +98,8 @@ app.post('/api/seo/keywords', async (c) => {
   }
 })
 
-// Get domain overview
-app.post('/api/seo/domain', async (c) => {
+// Get domain overview (requires authentication)
+app.post('/api/seo/domain', requireAuth, async (c) => {
   try {
     const body = await c.req.json()
     const { domain, location = 'United States', language = 'English' } = body
@@ -111,8 +119,8 @@ app.post('/api/seo/domain', async (c) => {
   }
 })
 
-// Get backlinks for a domain
-app.post('/api/seo/backlinks', async (c) => {
+// Get backlinks for a domain (requires authentication)
+app.post('/api/seo/backlinks', requireAuth, async (c) => {
   try {
     const body = await c.req.json()
     const { domain, limit = 100 } = body
@@ -132,8 +140,8 @@ app.post('/api/seo/backlinks', async (c) => {
   }
 })
 
-// Get search volume for multiple keywords
-app.post('/api/seo/search-volume', async (c) => {
+// Get search volume for multiple keywords (requires authentication) 
+app.post('/api/seo/search-volume', requireAuth, async (c) => {
   try {
     const body = await c.req.json()
     const { keywords, location = 'United States', language = 'English' } = body
@@ -163,8 +171,8 @@ app.get('/api/health', (c) => {
   })
 })
 
-// Account info endpoint
-app.get('/api/seo/account', async (c) => {
+// Account info endpoint (requires authentication)
+app.get('/api/seo/account', requireAuth, async (c) => {
   try {
     const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`)
     
@@ -198,8 +206,53 @@ app.get('/api/seo/account', async (c) => {
   }
 })
 
-// Main dashboard page
-app.get('/', (c) => {
+// Login page route
+app.get('/login', (c) => {
+  return c.html(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SEO Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --deep-blue: #172B42;
+            --orange-accent: #E05E0F;
+            --teal-highlight: #4D9A88;
+        }
+        body { background-color: var(--deep-blue); }
+        .bg-brand-orange { background-color: var(--orange-accent); }
+        .bg-brand-teal { background-color: var(--teal-highlight); }
+        .text-brand-orange { color: var(--orange-accent); }
+        .text-brand-teal { color: var(--teal-highlight); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div id="auth-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="/static/auth.js"></script>
+</body>
+</html>
+  `)
+})
+
+// Main dashboard page (protected)
+app.get('/', optionalAuth, (c) => {
+  // Check if user is authenticated
+  const isAuthenticated = c.get('isAuthenticated')
+  
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return c.redirect('/login')
+  }
   return c.html(`
 <!DOCTYPE html>
 <html lang="en">
