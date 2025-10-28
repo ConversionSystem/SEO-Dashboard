@@ -217,9 +217,32 @@ class AdvancedSEOTools {
             });
 
             const data = response.data;
+            
+            // Add summary stats
+            const rankedCount = data.rankings.filter(r => r.position !== null).length;
+            const avgPosition = data.rankings.filter(r => r.position).reduce((sum, r) => sum + r.position, 0) / rankedCount || 0;
+            
             resultsDiv.innerHTML = `
-                <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
-                    <h4 class="font-bold mb-4">Rankings for ${data.domain}</h4>
+                <div class="space-y-4">
+                    <!-- Summary Stats -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-brand-teal">${rankedCount}/${data.rankings.length}</div>
+                            <div class="text-sm text-gray-400">Keywords Ranking</div>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-brand-orange">${avgPosition.toFixed(1)}</div>
+                            <div class="text-sm text-gray-400">Average Position</div>
+                        </div>
+                        <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4 text-center">
+                            <div class="text-2xl font-bold text-green-400">${data.rankings.filter(r => r.position && r.position <= 10).length}</div>
+                            <div class="text-sm text-gray-400">Top 10 Rankings</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rankings Table -->
+                    <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                        <h4 class="font-bold mb-4">Rankings for ${data.domain}</h4>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
