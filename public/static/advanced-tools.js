@@ -742,10 +742,117 @@ class AdvancedSEOTools {
                     <i class="fas fa-trophy text-yellow-400 mr-2"></i>
                     SERP Features Tracker
                 </h3>
-                <p class="text-gray-400 mb-4">Track featured snippets, People Also Ask, and other SERP features</p>
-                <!-- Implementation continues... -->
+                
+                <div class="mb-4">
+                    <label class="block text-sm mb-2">Keywords to Analyze (one per line)</label>
+                    <textarea id="serpFeatureKeywords" rows="4" 
+                              placeholder="what is SEO\nhow to improve conversion rate\nmarketing tools"
+                              class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-600 focus:border-brand-teal"></textarea>
+                </div>
+                
+                <button onclick="advancedTools.trackSERPFeatures()" 
+                        class="px-6 py-2 bg-yellow-500 text-white rounded hover:opacity-90">
+                    <i class="fas fa-search mr-2"></i>Analyze SERP Features
+                </button>
+                
+                <div id="serpFeatureResults" class="mt-6"></div>
             </div>
         `;
+    }
+    
+    async trackSERPFeatures() {
+        const keywords = document.getElementById('serpFeatureKeywords').value
+            .split('\n')
+            .map(k => k.trim())
+            .filter(k => k);
+        
+        if (keywords.length === 0) {
+            alert('Please enter keywords to analyze');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('serpFeatureResults');
+        resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner loading-spinner text-2xl"></i>
+                <div class="mt-2">Analyzing SERP features...</div>
+            </div>
+        `;
+
+        try {
+            const response = await axios.post('/api/seo/advanced/serp-features', { 
+                keywords: keywords.slice(0, 5) // Limit to 5 for cost
+            });
+            const data = response.data;
+            
+            resultsDiv.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                        <h4 class="font-bold mb-4">SERP Features Analysis</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-yellow-400">${data.summary?.with_featured_snippets || 0}</div>
+                                <div class="text-sm text-gray-400">Featured Snippets</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-400">${data.summary?.with_people_also_ask || 0}</div>
+                                <div class="text-sm text-gray-400">People Also Ask</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-400">${data.summary?.with_knowledge_panel || 0}</div>
+                                <div class="text-sm text-gray-400">Knowledge Panels</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-purple-400">${data.summary?.with_local_pack || 0}</div>
+                                <div class="text-sm text-gray-400">Local Packs</div>
+                            </div>
+                        </div>
+                        
+                        ${data.features && data.features.length > 0 ? `
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-gray-700">
+                                            <th class="text-left py-2">Keyword</th>
+                                            <th class="text-center py-2">Featured</th>
+                                            <th class="text-center py-2">PAA</th>
+                                            <th class="text-center py-2">Knowledge</th>
+                                            <th class="text-center py-2">Local</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.features.map(f => `
+                                            <tr class="border-b border-gray-800">
+                                                <td class="py-2">${f.keyword}</td>
+                                                <td class="text-center py-2">
+                                                    ${f.has_featured_snippet ? '<i class="fas fa-check text-green-400"></i>' : '-'}
+                                                </td>
+                                                <td class="text-center py-2">
+                                                    ${f.people_also_ask_count > 0 ? `<span class="text-blue-400">${f.people_also_ask_count}</span>` : '-'}
+                                                </td>
+                                                <td class="text-center py-2">
+                                                    ${f.has_knowledge_panel ? '<i class="fas fa-check text-green-400"></i>' : '-'}
+                                                </td>
+                                                <td class="text-center py-2">
+                                                    ${f.has_local_pack ? '<i class="fas fa-check text-green-400"></i>' : '-'}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('SERP features error:', error);
+            resultsDiv.innerHTML = `
+                <div class="text-red-400 p-4 bg-red-900 bg-opacity-20 rounded">
+                    Error: ${error.response?.data?.error || error.message}
+                </div>
+            `;
+        }
     }
 
     renderLocalSEO(container) {
@@ -755,10 +862,89 @@ class AdvancedSEOTools {
                     <i class="fas fa-map-marker-alt text-blue-400 mr-2"></i>
                     Local SEO Analysis
                 </h3>
-                <p class="text-gray-400 mb-4">Analyze local search presence and Google My Business data</p>
-                <!-- Implementation continues... -->
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm mb-2">Business Name</label>
+                        <input type="text" id="localBusinessName" placeholder="Conversion System" 
+                               class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-600 focus:border-brand-teal">
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-2">Location</label>
+                        <input type="text" id="localLocation" placeholder="San Francisco" value="United States"
+                               class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-600 focus:border-brand-teal">
+                    </div>
+                </div>
+                
+                <button onclick="advancedTools.analyzeLocalSEO()" 
+                        class="px-6 py-2 bg-blue-500 text-white rounded hover:opacity-90">
+                    <i class="fas fa-map mr-2"></i>Analyze Local SEO
+                </button>
+                
+                <div id="localSEOResults" class="mt-6"></div>
             </div>
         `;
+    }
+    
+    async analyzeLocalSEO() {
+        const businessName = document.getElementById('localBusinessName').value.trim();
+        const location = document.getElementById('localLocation').value.trim();
+        
+        if (!businessName) {
+            alert('Please enter a business name');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('localSEOResults');
+        resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner loading-spinner text-2xl"></i>
+                <div class="mt-2">Analyzing local SEO...</div>
+            </div>
+        `;
+
+        try {
+            const response = await axios.post('/api/seo/advanced/local-seo', { 
+                business_name: businessName,
+                location 
+            });
+            const data = response.data;
+            
+            resultsDiv.innerHTML = `
+                <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                    <h4 class="font-bold mb-4">Local SEO Results</h4>
+                    ${data.found && data.data ? `
+                        <div class="space-y-2">
+                            <div><span class="text-gray-400">Business:</span> ${data.data.title}</div>
+                            <div><span class="text-gray-400">Rating:</span> ${data.data.rating}/5 (${data.data.reviews_count} reviews)</div>
+                            <div><span class="text-gray-400">Address:</span> ${data.data.address || 'N/A'}</div>
+                            <div><span class="text-gray-400">Phone:</span> ${data.data.phone || 'N/A'}</div>
+                            <div><span class="text-gray-400">Category:</span> ${data.data.category || 'N/A'}</div>
+                        </div>
+                    ` : `
+                        <div class="text-gray-400">Business not found in local results. Try adding your business to Google My Business.</div>
+                    `}
+                    
+                    ${data.competitors && data.competitors.length > 0 ? `
+                        <div class="mt-4">
+                            <h5 class="font-bold mb-2">Top Local Competitors:</h5>
+                            <ul class="space-y-1">
+                                ${data.competitors.slice(0, 5).map(comp => `
+                                    <li class="text-sm">• ${comp.title} - Rating: ${comp.rating?.value || 'N/A'}/5</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Local SEO error:', error);
+            resultsDiv.innerHTML = `
+                <div class="text-red-400 p-4 bg-red-900 bg-opacity-20 rounded">
+                    Error: ${error.response?.data?.error || error.message}
+                </div>
+            `;
+        }
     }
 
     renderQuestionFinder(container) {
@@ -768,10 +954,82 @@ class AdvancedSEOTools {
                     <i class="fas fa-question-circle text-indigo-400 mr-2"></i>
                     Question Finder
                 </h3>
-                <p class="text-gray-400 mb-4">Find "People Also Ask" opportunities</p>
-                <!-- Implementation continues... -->
+                
+                <div class="mb-4">
+                    <label class="block text-sm mb-2">Topic to Find Questions About</label>
+                    <input type="text" id="questionTopic" placeholder="e.g., conversion optimization, email marketing" 
+                           class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-600 focus:border-brand-teal">
+                </div>
+                
+                <button onclick="advancedTools.findQuestions()" 
+                        class="px-6 py-2 bg-indigo-500 text-white rounded hover:opacity-90">
+                    <i class="fas fa-search mr-2"></i>Find Questions
+                </button>
+                
+                <div id="questionResults" class="mt-6"></div>
             </div>
         `;
+    }
+    
+    async findQuestions() {
+        const topic = document.getElementById('questionTopic').value.trim();
+        
+        if (!topic) {
+            alert('Please enter a topic');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('questionResults');
+        resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner loading-spinner text-2xl"></i>
+                <div class="mt-2">Finding questions...</div>
+            </div>
+        `;
+
+        try {
+            const response = await axios.post('/api/seo/advanced/question-opportunities', { topic });
+            const data = response.data;
+            
+            resultsDiv.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                        <h4 class="font-bold mb-4">Questions Found: ${data.total_questions}</h4>
+                        ${data.questions && data.questions.length > 0 ? `
+                            <div class="space-y-2">
+                                ${data.questions.slice(0, 20).map(q => `
+                                    <div class="p-3 bg-gray-900 bg-opacity-50 rounded">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <i class="fas fa-question-circle text-indigo-400 mr-2"></i>
+                                                <span>${q.question}</span>
+                                            </div>
+                                            <div class="text-right text-sm">
+                                                ${q.search_volume > 0 ? `
+                                                    <span class="text-brand-teal">${q.search_volume.toLocaleString()} vol</span>
+                                                ` : ''}
+                                                ${q.cpc > 0 ? `
+                                                    <span class="text-brand-orange ml-2">$${q.cpc.toFixed(2)}</span>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div class="text-gray-400">No questions found for this topic. Try a different topic.</div>
+                        `}
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Question finder error:', error);
+            resultsDiv.innerHTML = `
+                <div class="text-red-400 p-4 bg-red-900 bg-opacity-20 rounded">
+                    Error: ${error.response?.data?.error || error.message}
+                </div>
+            `;
+        }
     }
 
     renderBulkAnalyzer(container) {
@@ -781,14 +1039,156 @@ class AdvancedSEOTools {
                     <i class="fas fa-list text-pink-400 mr-2"></i>
                     Bulk URL Analyzer
                 </h3>
-                <p class="text-gray-400 mb-4">Analyze multiple URLs at once</p>
-                <!-- Implementation continues... -->
+                
+                <div class="mb-4">
+                    <label class="block text-sm mb-2">URLs to Analyze (one per line, max 10)</label>
+                    <textarea id="bulkUrls" rows="5" 
+                              placeholder="https://example.com/page1\nhttps://example.com/page2\nhttps://example.com/page3"
+                              class="w-full px-4 py-2 bg-gray-800 rounded border border-gray-600 focus:border-brand-teal"></textarea>
+                </div>
+                
+                <button onclick="advancedTools.analyzeBulkURLs()" 
+                        class="px-6 py-2 bg-pink-500 text-white rounded hover:opacity-90">
+                    <i class="fas fa-search mr-2"></i>Analyze URLs
+                </button>
+                
+                <div id="bulkUrlResults" class="mt-6"></div>
             </div>
         `;
     }
+    
+    async analyzeBulkURLs() {
+        const urls = document.getElementById('bulkUrls').value
+            .split('\n')
+            .map(u => u.trim())
+            .filter(u => u && u.startsWith('http'));
+        
+        if (urls.length === 0) {
+            alert('Please enter valid URLs to analyze');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('bulkUrlResults');
+        resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner loading-spinner text-2xl"></i>
+                <div class="mt-2">Analyzing ${urls.length} URLs...</div>
+            </div>
+        `;
+
+        try {
+            const response = await axios.post('/api/seo/advanced/bulk-urls', { 
+                urls: urls.slice(0, 10) // Limit to 10
+            });
+            const data = response.data;
+            
+            resultsDiv.innerHTML = `
+                <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                    <h4 class="font-bold mb-4">Bulk URL Analysis Results</h4>
+                    ${data.results && data.results.length > 0 ? `
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-700">
+                                        <th class="text-left py-2">URL</th>
+                                        <th class="text-left py-2">Title</th>
+                                        <th class="text-center py-2">Status</th>
+                                        <th class="text-center py-2">Words</th>
+                                        <th class="text-center py-2">Load Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.results.map(r => `
+                                        <tr class="border-b border-gray-800">
+                                            <td class="py-2 text-sm">
+                                                <a href="${r.url}" target="_blank" class="text-brand-teal hover:underline">
+                                                    ${r.url.length > 30 ? r.url.substring(0, 30) + '...' : r.url}
+                                                </a>
+                                            </td>
+                                            <td class="py-2 text-sm">${r.title || 'No title'}</td>
+                                            <td class="text-center py-2">
+                                                <span class="px-2 py-1 rounded text-xs ${
+                                                    r.status_code === 200 ? 'bg-green-500' :
+                                                    r.status_code === 301 || r.status_code === 302 ? 'bg-yellow-500' :
+                                                    'bg-red-500'
+                                                } bg-opacity-20">
+                                                    ${r.status_code || 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td class="text-center py-2">${r.word_count || 0}</td>
+                                            <td class="text-center py-2">${r.load_time ? r.load_time.toFixed(2) + 's' : 'N/A'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : `
+                        <div class="text-gray-400">No results available. Note: This feature requires page analysis API access.</div>
+                    `}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Bulk URL analysis error:', error);
+            resultsDiv.innerHTML = `
+                <div class="text-red-400 p-4 bg-red-900 bg-opacity-20 rounded">
+                    Error: ${error.response?.data?.error || error.message}
+                </div>
+            `;
+        }
+    }
 
     async clusterKeywords() {
-        // Implementation for clustering
+        const keywords = document.getElementById('clusterKeywords').value
+            .split('\n')
+            .map(k => k.trim())
+            .filter(k => k);
+        
+        if (keywords.length === 0) {
+            alert('Please enter keywords to cluster');
+            return;
+        }
+
+        const resultsDiv = document.getElementById('clusterResults');
+        resultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner loading-spinner text-2xl"></i>
+                <div class="mt-2">Creating clusters...</div>
+            </div>
+        `;
+
+        try {
+            const response = await axios.post('/api/seo/advanced/keyword-clustering', { keywords });
+            const data = response.data;
+            
+            resultsDiv.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-gray-800 bg-opacity-50 rounded-lg p-4">
+                        <h4 class="font-bold mb-4">Keyword Clusters</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${data.clusters.map(cluster => `
+                                <div class="bg-gray-900 bg-opacity-50 rounded p-3">
+                                    <div class="font-bold text-brand-teal mb-2">
+                                        ${cluster.cluster_name} (${cluster.count})
+                                    </div>
+                                    <div class="text-sm">
+                                        ${cluster.keywords.map(kw => `
+                                            <span class="inline-block px-2 py-1 m-1 bg-gray-700 rounded">${kw}</span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Clustering error:', error);
+            resultsDiv.innerHTML = `
+                <div class="text-red-400 p-4 bg-red-900 bg-opacity-20 rounded">
+                    Error: ${error.response?.data?.error || error.message}
+                </div>
+            `;
+        }
     }
 }
 
