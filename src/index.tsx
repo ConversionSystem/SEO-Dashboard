@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { logger } from 'hono/logger'
+import { DataForSEOService } from './dataforseo-service'
 
 // Types
 type Bindings = {
@@ -11,11 +12,7 @@ type Bindings = {
   SEO_CACHE?: KVNamespace
 }
 
-type Variables = {
-  dataforseoAuth: string
-}
-
-const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
+const app = new Hono<{ Bindings: Bindings }>()
 
 // Middleware
 app.use('*', logger())
@@ -29,53 +26,17 @@ app.use('/api/*', cors({
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/favicon.ico', serveStatic({ path: './public/favicon.ico' }))
 
-// DataForSEO Auth Middleware
-app.use('/api/seo/*', async (c, next) => {
-  const { DATAFORSEO_LOGIN, DATAFORSEO_PASSWORD } = c.env
-  
-  if (!DATAFORSEO_LOGIN || !DATAFORSEO_PASSWORD) {
-    return c.json({ error: 'DataForSEO credentials not configured' }, 500)
-  }
-  
-  // Store base64 encoded credentials for API calls
-  const auth = btoa(`${DATAFORSEO_LOGIN}:${DATAFORSEO_PASSWORD}`)
-  c.set('dataforseoAuth', auth)
-  
-  await next()
-})
-
-// Helper function for DataForSEO API calls
-async function callDataForSEO(endpoint: string, data: any, auth: string) {
-  const response = await fetch(`https://api.dataforseo.com/v3${endpoint}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify([data])
-  })
-  
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`DataForSEO API error: ${error}`)
-  }
-  
-  return await response.json()
-}
-
 // API Routes
 
 // Get SERP results for a keyword
 app.post('/api/seo/serp', async (c) => {
   try {
     const body = await c.req.json()
-    const { keyword, location = 'United States', language = 'en', device = 'desktop' } = body
+    const { keyword, location = 'United States', language = 'English', device = 'desktop' } = body
     
     if (!keyword) {
       return c.json({ error: 'Keyword is required' }, 400)
     }
-    
-    const auth = c.get('dataforseoAuth')
     
     // Check cache first if KV is available
     const cacheKey = `serp:${keyword}:${location}:${language}:${device}`
@@ -86,32 +47,18 @@ app.post('/api/seo/serp', async (c) => {
       }
     }
     
-    const data = {
-      keyword,
-      location_name: location,
-      language_name: language,
-      device,
-      depth: 10
-    }
-    
-    const result = await callDataForSEO('/serp/google/organic/live/advanced', data, auth)
-    
-    // Parse and format the response
-    const formattedResult = {
-      keyword,
-      timestamp: new Date().toISOString(),
-      results: result?.tasks?.[0]?.result?.[0]?.items || [],
-      total_results: result?.tasks?.[0]?.result?.[0]?.se_results_count || 0
-    }
+    // Initialize DataForSEO service
+    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD)
+    const result = await service.getSERPResults(keyword, location, language)
     
     // Cache for 1 hour
     if (c.env.SEO_CACHE) {
-      await c.env.SEO_CACHE.put(cacheKey, JSON.stringify(formattedResult), {
+      await c.env.SEO_CACHE.put(cacheKey, JSON.stringify(result), {
         expirationTtl: 3600
       })
     }
     
-    return c.json(formattedResult)
+    return c.json(result)
   } catch (error: any) {
     console.error('SERP API error:', error)
     return c.json({ error: error.message }, 500)
@@ -122,33 +69,17 @@ app.post('/api/seo/serp', async (c) => {
 app.post('/api/seo/keywords', async (c) => {
   try {
     const body = await c.req.json()
-    const { seed, location = 'United States', language = 'en' } = body
+    const { seed, location = 'United States', language = 'English' } = body
     
     if (!seed) {
       return c.json({ error: 'Seed keyword is required' }, 400)
     }
     
-    const auth = c.get('dataforseoAuth')
+    // Initialize DataForSEO service
+    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD)
+    const result = await service.getKeywordSuggestions(seed, location, language)
     
-    const data = {
-      keywords: [seed],
-      location_name: location,
-      language_name: language,
-      include_seed_keyword: true,
-      sort_by: 'search_volume',
-      limit: 100
-    }
-    
-    const result = await callDataForSEO('/keywords_data/google_ads/keywords_for_keywords/live', data, auth)
-    
-    const formattedResult = {
-      seed,
-      timestamp: new Date().toISOString(),
-      keywords: result?.tasks?.[0]?.result || [],
-      total_keywords: result?.tasks?.[0]?.result?.length || 0
-    }
-    
-    return c.json(formattedResult)
+    return c.json(result)
   } catch (error: any) {
     console.error('Keywords API error:', error)
     return c.json({ error: error.message }, 500)
@@ -159,31 +90,17 @@ app.post('/api/seo/keywords', async (c) => {
 app.post('/api/seo/domain', async (c) => {
   try {
     const body = await c.req.json()
-    const { domain, location = 'United States', language = 'en' } = body
+    const { domain, location = 'United States', language = 'English' } = body
     
     if (!domain) {
       return c.json({ error: 'Domain is required' }, 400)
     }
     
-    const auth = c.get('dataforseoAuth')
+    // Initialize DataForSEO service
+    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD)
+    const result = await service.getDomainOverview(domain)
     
-    // Get domain metrics
-    const data = {
-      target: domain,
-      location_name: location,
-      language_name: language,
-      include_subdomains: false
-    }
-    
-    const result = await callDataForSEO('/domain_analytics/ahrefs/domain_metrics/live', data, auth)
-    
-    const formattedResult = {
-      domain,
-      timestamp: new Date().toISOString(),
-      metrics: result?.tasks?.[0]?.result?.[0] || {}
-    }
-    
-    return c.json(formattedResult)
+    return c.json(result)
   } catch (error: any) {
     console.error('Domain API error:', error)
     return c.json({ error: error.message }, 500)
@@ -200,25 +117,11 @@ app.post('/api/seo/backlinks', async (c) => {
       return c.json({ error: 'Domain is required' }, 400)
     }
     
-    const auth = c.get('dataforseoAuth')
+    // Initialize DataForSEO service
+    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD)
+    const result = await service.getBacklinks(domain, limit)
     
-    const data = {
-      target: domain,
-      mode: 'as_is',
-      filters: ['dofollow', '=', true],
-      limit
-    }
-    
-    const result = await callDataForSEO('/backlinks/backlinks/live', data, auth)
-    
-    const formattedResult = {
-      domain,
-      timestamp: new Date().toISOString(),
-      backlinks: result?.tasks?.[0]?.result?.[0]?.items || [],
-      total_backlinks: result?.tasks?.[0]?.result?.[0]?.total_count || 0
-    }
-    
-    return c.json(formattedResult)
+    return c.json(result)
   } catch (error: any) {
     console.error('Backlinks API error:', error)
     return c.json({ error: error.message }, 500)
@@ -229,30 +132,17 @@ app.post('/api/seo/backlinks', async (c) => {
 app.post('/api/seo/search-volume', async (c) => {
   try {
     const body = await c.req.json()
-    const { keywords, location = 'United States', language = 'en' } = body
+    const { keywords, location = 'United States', language = 'English' } = body
     
     if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
       return c.json({ error: 'Keywords array is required' }, 400)
     }
     
-    const auth = c.get('dataforseoAuth')
+    // Initialize DataForSEO service
+    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD)
+    const result = await service.getSearchVolume(keywords, location, language)
     
-    const data = {
-      keywords,
-      location_name: location,
-      language_name: language
-    }
-    
-    const result = await callDataForSEO('/keywords_data/google/search_volume/live', data, auth)
-    
-    const formattedResult = {
-      keywords,
-      timestamp: new Date().toISOString(),
-      data: result?.tasks?.[0]?.result || [],
-      total: result?.tasks?.[0]?.result?.length || 0
-    }
-    
-    return c.json(formattedResult)
+    return c.json(result)
   } catch (error: any) {
     console.error('Search Volume API error:', error)
     return c.json({ error: error.message }, 500)
@@ -264,8 +154,44 @@ app.get('/api/health', (c) => {
   return c.json({ 
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'SEO Dashboard API'
+    service: 'SEO Dashboard API',
+    version: '1.0.0'
   })
+})
+
+// Account info endpoint
+app.get('/api/seo/account', async (c) => {
+  try {
+    const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`)
+    
+    const response = await fetch('https://api.dataforseo.com/v3/appendix/user_data', {
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch account data')
+    }
+    
+    const data = await response.json()
+    
+    if (data.tasks && data.tasks[0] && data.tasks[0].result) {
+      const userData = data.tasks[0].result[0]
+      return c.json({
+        login: userData.login,
+        balance: userData.money?.balance || 0,
+        total_tasks: userData.rates?.total_tasks_count || 0,
+        timestamp: new Date().toISOString()
+      })
+    }
+    
+    return c.json({ error: 'Unable to fetch account data' }, 500)
+  } catch (error: any) {
+    console.error('Account API error:', error)
+    return c.json({ error: error.message }, 500)
+  }
 })
 
 // Main dashboard page
@@ -332,6 +258,15 @@ app.get('/', (c) => {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -342,6 +277,22 @@ app.get('/', (c) => {
     
     <!-- Main Application -->
     <script src="/static/app.js"></script>
+    
+    <!-- Initialize account info on load -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/seo/account');
+                const data = await response.json();
+                if (data.balance !== undefined) {
+                    console.log('DataForSEO Account Connected:', data.login);
+                    console.log('Balance: $' + data.balance.toFixed(2));
+                }
+            } catch (error) {
+                console.error('Failed to fetch account info:', error);
+            }
+        });
+    </script>
 </body>
 </html>
   `)
