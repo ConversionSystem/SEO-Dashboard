@@ -9,6 +9,7 @@
 - **Development**: https://3000-i6d84vmlnptp5mjh3924e-5634da27.sandbox.novita.ai
 - **Production**: Will be available at https://seo-dashboard.pages.dev (after deployment)
 - **GitHub**: Not yet deployed
+- **API Status**: ✅ DataForSEO Connected (Balance: $26.82)
 
 ## Features
 
@@ -154,6 +155,19 @@ DASHBOARD_API_KEY=your_api_key
 3. Identify keyword gaps and opportunities
 4. Track competitor ranking changes
 
+#### Advanced Tools Tab
+1. Access the "Advanced Tools" tab
+2. Select from 9 specialized SEO tools:
+   - **Rank Tracker**: Monitor your rankings
+   - **Content Analyzer**: Optimize on-page SEO
+   - **Competitor Gap**: Find missing keywords
+   - **Technical Audit**: Fix site issues
+   - **Keyword Clustering**: Organize keywords by topic
+   - **SERP Features**: Track rich snippets
+   - **Local SEO**: Monitor local presence
+   - **Question Finder**: Discover PAA opportunities
+   - **Bulk Analyzer**: Analyze multiple URLs
+
 ## Features Not Yet Implemented
 - User authentication system
 - Historical data tracking and trends
@@ -194,8 +208,11 @@ npm run git:status            # Check git status
 
 ## Deployment Status
 - **Platform**: Cloudflare Pages
-- **Status**: ✅ Development Active
+- **Status**: ✅ Development Active with Live Data
 - **Tech Stack**: Hono + TypeScript + TailwindCSS + Chart.js
+- **DataForSEO**: ✅ Configured and Working
+- **Account**: support@conversionsystem.com
+- **Balance**: $26.82 (Live API Credits)
 - **Last Updated**: 2025-10-28
 
 ## Support

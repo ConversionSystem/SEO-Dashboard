@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { logger } from 'hono/logger'
 import { DataForSEOService } from './dataforseo-service'
+import { advancedRoutes } from './advanced-routes'
 
 // Types
 type Bindings = {
@@ -25,6 +26,9 @@ app.use('/api/*', cors({
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 app.use('/favicon.ico', serveStatic({ path: './public/favicon.ico' }))
+
+// Mount advanced SEO routes
+app.route('/api/seo/advanced', advancedRoutes)
 
 // API Routes
 

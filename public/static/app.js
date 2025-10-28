@@ -64,6 +64,9 @@ class SEODashboard {
                         <button class="nav-tab" data-view="competitors">
                             <i class="fas fa-users mr-2"></i>Competitors
                         </button>
+                        <button class="nav-tab" data-view="tools">
+                            <i class="fas fa-tools mr-2"></i>Advanced Tools
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -173,6 +176,9 @@ class SEODashboard {
                 break;
             case 'competitors':
                 this.renderCompetitors(contentArea);
+                break;
+            case 'tools':
+                this.renderAdvancedTools(contentArea);
                 break;
         }
     }
@@ -384,6 +390,21 @@ class SEODashboard {
                 </div>
             </div>
         `;
+    }
+
+    renderAdvancedTools(container) {
+        // Load advanced tools if not already loaded
+        if (!window.advancedTools) {
+            const script = document.createElement('script');
+            script.src = '/static/advanced-tools.js';
+            script.onload = () => {
+                window.advancedTools = new AdvancedSEOTools(this);
+                window.advancedTools.renderTools(container);
+            };
+            document.body.appendChild(script);
+        } else {
+            window.advancedTools.renderTools(container);
+        }
     }
 
     renderCompetitors(container) {
