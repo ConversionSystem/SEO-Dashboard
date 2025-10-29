@@ -16,11 +16,35 @@ class SEODashboard {
         this.init();
     }
 
-    init() {
+    async init() {
         // Check authentication
         if (!this.accessToken) {
+            console.log('No access token found, redirecting to login...');
             window.location.href = '/login';
             return;
+        }
+        
+        // Verify token is still valid by making a test API call
+        try {
+            const response = await fetch('/api/auth/verify', {
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                // Token might be expired, try to refresh
+                const refreshed = await this.refreshAccessToken();
+                if (!refreshed) {
+                    console.log('Token validation failed, redirecting to login...');
+                    localStorage.clear();
+                    window.location.href = '/login';
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Auth verification error:', error);
+            // Network error, let's continue but setup interceptors
         }
         
         // Setup axios interceptors for authentication

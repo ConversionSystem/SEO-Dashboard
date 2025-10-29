@@ -112,6 +112,22 @@ authRoutes.post('/refresh', zValidator('json', refreshSchema), async (c) => {
   });
 });
 
+// Verify token endpoint (for checking if token is still valid)
+authRoutes.get('/verify', requireAuth, async (c) => {
+  const user = c.get('user');
+  
+  return c.json({
+    success: true,
+    valid: true,
+    user: {
+      userId: user!.userId,
+      email: user!.email,
+      role: user!.role,
+      teamId: user!.teamId
+    }
+  });
+});
+
 // Logout endpoint
 authRoutes.post('/logout', zValidator('json', refreshSchema), async (c) => {
   const { refreshToken } = c.req.valid('json');

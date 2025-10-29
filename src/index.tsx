@@ -244,15 +244,10 @@ app.get('/login', (c) => {
   `)
 })
 
-// Main dashboard page (protected)
-app.get('/', optionalAuth, (c) => {
-  // Check if user is authenticated
-  const isAuthenticated = c.get('isAuthenticated')
-  
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return c.redirect('/login')
-  }
+// Main dashboard page
+app.get('/', (c) => {
+  // The frontend JavaScript will handle authentication check
+  // We'll let the client-side code redirect if needed
   return c.html(`
 <!DOCTYPE html>
 <html lang="en">

@@ -253,10 +253,11 @@ class AuthSystem {
 
                 this.showMessage('success', 'Login successful! Redirecting...');
                 
-                // Redirect to dashboard after 1 second
+                // Redirect to dashboard immediately
+                // Using replace to prevent back button issues
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    window.location.replace('/');
+                }, 500);
             } else {
                 this.showMessage('error', data.error || 'Login failed');
             }
@@ -293,10 +294,11 @@ class AuthSystem {
 
                 this.showMessage('success', 'Account created successfully! Redirecting...');
                 
-                // Redirect to dashboard after 1 second
+                // Redirect to dashboard immediately
+                // Using replace to prevent back button issues
                 setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                    window.location.replace('/');
+                }, 500);
             } else {
                 this.showMessage('error', data.error || 'Registration failed');
             }
