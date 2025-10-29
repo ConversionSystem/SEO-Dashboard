@@ -645,7 +645,18 @@ app.get('/', (c) => {
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     
     <!-- Main Application -->
-    <script src="/static/app-enhanced.js"></script>
+    <script src="/static/app-enhanced.js" defer></script>
+    
+    <!-- Initialize dashboard after page load -->
+    <script>
+        window.addEventListener('load', function() {
+            // Ensure dashboard is initialized
+            if (typeof EnhancedSEODashboard !== 'undefined' && !window.dashboard) {
+                console.log('Initializing Enhanced SEO Dashboard...');
+                window.dashboard = new EnhancedSEODashboard();
+            }
+        });
+    </script>
     
     <!-- Initialize account info on load -->
     <script>
