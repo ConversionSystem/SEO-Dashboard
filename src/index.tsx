@@ -262,6 +262,20 @@ app.get('/', (c) => {
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind with custom colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-blue': '#172B42',
+                        'brand-orange': '#E05E0F',
+                        'brand-teal': '#4D9A88'
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Font Awesome Icons -->
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
@@ -276,11 +290,14 @@ app.get('/', (c) => {
             --orange-accent: #E05E0F;
             --teal-highlight: #4D9A88;
             --white: #FFFFFF;
+            --sidebar-width: 260px;
         }
         
         body {
             background-color: var(--deep-blue);
             color: var(--white);
+            margin: 0;
+            padding: 0;
         }
         
         .bg-brand-blue { background-color: var(--deep-blue); }
@@ -295,6 +312,63 @@ app.get('/', (c) => {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .sidebar-collapsed {
+            transform: translateX(-200px);
+        }
+        
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content-expanded {
+            margin-left: 60px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            margin: 2px 0;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+            border-left-color: var(--teal-highlight);
+        }
+        
+        .nav-item.active {
+            background: rgba(77, 154, 136, 0.1);
+            color: var(--white);
+            border-left-color: var(--orange-accent);
+        }
+        
+        .nav-icon {
+            width: 24px;
+            margin-right: 12px;
+            text-align: center;
         }
         
         .hover-lift {
@@ -323,16 +397,190 @@ app.get('/', (c) => {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen">
-    <div id="app"></div>
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+        <!-- Logo/Brand -->
+        <div class="p-6 border-b border-white/10">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-brand-orange flex items-center justify-center">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-lg">SEO Dashboard</h1>
+                    <p class="text-white/50 text-xs">Conversion System</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Info -->
+        <div class="p-4 border-b border-white/10">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-brand-teal/20 flex items-center justify-center">
+                    <i class="fas fa-user text-brand-teal"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-white text-sm font-medium" id="userName">Guest User</div>
+                    <div class="text-white/50 text-xs" id="userRole">Viewer</div>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-white/50 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav class="p-4">
+            <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">Main</div>
+            
+            <a href="#dashboard" class="nav-item active" onclick="loadDashboard(event)">
+                <i class="fas fa-home nav-icon"></i>
+                <span>Dashboard Overview</span>
+            </a>
+            
+            <a href="#local-seo" class="nav-item" onclick="loadLocalSEO(event)">
+                <i class="fas fa-map-marked-alt nav-icon"></i>
+                <span>Local SEO Monitor</span>
+                <span class="ml-auto bg-brand-teal text-white text-xs px-2 py-1 rounded">Live</span>
+            </a>
+            
+            <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 mt-6">Analysis</div>
+            
+            <a href="#keywords" class="nav-item" onclick="loadKeywordResearch(event)">
+                <i class="fas fa-key nav-icon"></i>
+                <span>Keyword Research</span>
+            </a>
+            
+            <a href="#serp" class="nav-item" onclick="loadSERPAnalysis(event)">
+                <i class="fas fa-search nav-icon"></i>
+                <span>SERP Analysis</span>
+            </a>
+            
+            <a href="#competitors" class="nav-item" onclick="loadCompetitors(event)">
+                <i class="fas fa-users nav-icon"></i>
+                <span>Competitor Analysis</span>
+            </a>
+            
+            <a href="#backlinks" class="nav-item" onclick="loadBacklinks(event)">
+                <i class="fas fa-link nav-icon"></i>
+                <span>Backlink Monitor</span>
+            </a>
+            
+            <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 mt-6">Reports</div>
+            
+            <a href="#performance" class="nav-item" onclick="loadPerformance(event)">
+                <i class="fas fa-chart-bar nav-icon"></i>
+                <span>Performance</span>
+            </a>
+            
+            <a href="#analytics" class="nav-item" onclick="loadAnalytics(event)">
+                <i class="fas fa-analytics nav-icon"></i>
+                <span>Analytics</span>
+            </a>
+            
+            <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 mt-6">System</div>
+            
+            <a href="#settings" class="nav-item" onclick="loadSettings(event)">
+                <i class="fas fa-cog nav-icon"></i>
+                <span>Settings</span>
+            </a>
+            
+            <a href="#" class="nav-item" onclick="handleLogout(event)">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+        
+        <!-- Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+            <div class="text-center">
+                <div class="text-white/40 text-xs mb-2">DataForSEO Status</div>
+                <div class="flex items-center justify-center space-x-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-white/60 text-xs">Connected</span>
+                </div>
+                <div class="text-white/40 text-xs mt-1" id="apiBalance">Balance: $--</div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Mobile Menu Toggle -->
+    <button onclick="toggleSidebar()" class="md:hidden fixed top-4 left-4 z-[1001] bg-brand-orange text-white p-3 rounded-lg shadow-lg">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Main Content Area -->
+    <div id="mainContent" class="main-content">
+        <!-- Top Bar -->
+        <header class="glass-card sticky top-0 z-50 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleSidebar()" class="hidden md:block text-white/60 hover:text-white">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-xl font-semibold text-white" id="pageTitle">Dashboard Overview</h2>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Search -->
+                    <div class="hidden md:block relative">
+                        <input type="text" placeholder="Search..." class="bg-white/10 text-white placeholder-white/50 px-4 py-2 pr-10 rounded-lg focus:outline-none focus:bg-white/20 transition">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50"></i>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative text-white/60 hover:text-white">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-brand-orange rounded-full"></span>
+                    </button>
+                    
+                    <!-- Refresh -->
+                    <button onclick="refreshCurrentView()" class="text-white/60 hover:text-white">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <div id="app" class="p-6"></div>
+    </div>
     
     <!-- Axios for HTTP requests -->
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     
     <!-- Main Application -->
-    <script src="/static/app.js"></script>
+    <script src="/static/app-enhanced.js"></script>
     
     <!-- Initialize account info on load -->
     <script>
