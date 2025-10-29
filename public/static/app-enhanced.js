@@ -944,21 +944,12 @@ class EnhancedSEODashboard {
 
     // Start Local SEO Real-time Updates
     startLocalSEOUpdates() {
-        // Simulate real-time updates
+        // Create comprehensive Local SEO dashboard functions
         if (!window.localSEODashboard) {
             window.localSEODashboard = {
-                scanGMB: () => {
-                    console.log('Scanning GMB profile...');
-                    this.showNotification('Scanning GMB profile...', 'info');
-                },
-                analyzeRankings: () => {
-                    console.log('Analyzing local rankings...');
-                    this.showNotification('Analyzing local rankings...', 'info');
-                },
-                findCitations: () => {
-                    console.log('Finding citation opportunities...');
-                    this.showNotification('Finding citation opportunities...', 'info');
-                }
+                scanGMB: () => this.performGMBScan(),
+                analyzeRankings: () => this.performRankingAnalysis(),
+                findCitations: () => this.performCitationSearch()
             };
         }
         
@@ -971,7 +962,262 @@ class EnhancedSEODashboard {
         }, 30000); // Update every 30 seconds
     }
 
-    // Show notification
+    // Perform GMB Scan with animation and data updates
+    async performGMBScan() {
+        // Get the scan button
+        const scanBtn = event.target.closest('button');
+        const originalContent = scanBtn.innerHTML;
+        
+        // Show loading state
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Scanning...';
+        scanBtn.style.opacity = '0.7';
+        
+        // Show notification
+        this.showNotification('Scanning GMB profile for latest metrics...', 'info');
+        
+        // Simulate API call with timeout
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Generate new random data for demonstration
+        const newData = {
+            gmbVisibility: Math.floor(Math.random() * 15) + 85, // 85-100
+            profileViews: Math.floor(Math.random() * 500) + 2500, // 2500-3000
+            searchQueries: Math.floor(Math.random() * 400) + 1300, // 1300-1700
+            directionRequests: Math.floor(Math.random() * 100) + 380, // 380-480
+            phoneCalls: Math.floor(Math.random() * 50) + 170, // 170-220
+            change: (Math.random() * 5).toFixed(1) // 0-5%
+        };
+        
+        // Update GMB visibility with animation
+        this.animateValue('gmbVisibility', parseInt(document.getElementById('gmbVisibility').textContent), newData.gmbVisibility, 1000);
+        
+        // Update change indicator
+        const gmbChange = document.getElementById('gmbChange');
+        const changeValue = parseFloat(newData.change);
+        if (changeValue > 0) {
+            gmbChange.innerHTML = `<i class="fas fa-arrow-up"></i> +${changeValue}%`;
+            gmbChange.style.color = '#4D9A88';
+        } else if (changeValue < 0) {
+            gmbChange.innerHTML = `<i class="fas fa-arrow-down"></i> ${changeValue}%`;
+            gmbChange.style.color = '#E05E0F';
+        } else {
+            gmbChange.innerHTML = `<i class="fas fa-minus"></i> 0%`;
+            gmbChange.style.color = '#ffffff80';
+        }
+        
+        // Update all GMB metrics in the panel
+        const metricsHTML = `
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-white/60">Profile Views</span>
+                    <span class="text-white font-medium">${newData.profileViews.toLocaleString()}</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-1000" style="width: ${Math.min(95, newData.profileViews/30)}%; background-color: #4D9A88;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-white/60">Search Queries</span>
+                    <span class="text-white font-medium">${newData.searchQueries.toLocaleString()}</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-1000" style="width: ${Math.min(95, newData.searchQueries/20)}%; background-color: #E05E0F;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-white/60">Direction Requests</span>
+                    <span class="text-white font-medium">${newData.directionRequests}</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-1000" style="width: ${Math.min(95, newData.directionRequests/5)}%; background-color: #4D9A88;"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-white/60">Phone Calls</span>
+                    <span class="text-white font-medium">${newData.phoneCalls}</span>
+                </div>
+                <div class="w-full bg-white/10 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-1000" style="width: ${Math.min(95, newData.phoneCalls/2.5)}%; background-color: #E05E0F;"></div>
+                </div>
+            </div>
+        `;
+        
+        // Find and update the metrics container
+        const metricsContainer = scanBtn.closest('.glass-card').querySelector('.space-y-4');
+        if (metricsContainer) {
+            metricsContainer.innerHTML = metricsHTML;
+        }
+        
+        // Update the chart with new data
+        this.updateGMBChart();
+        
+        // Flash success effect on the card
+        const card = scanBtn.closest('.glass-card');
+        card.style.transition = 'all 0.3s ease';
+        card.style.boxShadow = '0 0 20px rgba(77, 154, 136, 0.5)';
+        setTimeout(() => {
+            card.style.boxShadow = '';
+        }, 500);
+        
+        // Restore button state
+        setTimeout(() => {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = originalContent;
+            scanBtn.style.opacity = '1';
+            
+            // Show success notification
+            this.showNotification('GMB scan complete! Metrics updated successfully.', 'success');
+            
+            // Update last update time
+            const lastUpdate = document.getElementById('lastUpdate');
+            if (lastUpdate) {
+                lastUpdate.textContent = 'Just now';
+            }
+        }, 500);
+    }
+
+    // Animate value changes
+    animateValue(elementId, start, end, duration) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const range = end - start;
+        const increment = range / (duration / 10);
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                current = end;
+                clearInterval(timer);
+            }
+            element.textContent = Math.round(current);
+        }, 10);
+    }
+
+    // Update GMB Chart with new data
+    updateGMBChart() {
+        const gmbCtx = document.getElementById('gmbTrendChart');
+        if (!gmbCtx) return;
+        
+        // Generate new random data for the week
+        const newData = [
+            Math.floor(Math.random() * 200) + 300,
+            Math.floor(Math.random() * 200) + 350,
+            Math.floor(Math.random() * 200) + 400,
+            Math.floor(Math.random() * 200) + 380,
+            Math.floor(Math.random() * 200) + 420,
+            Math.floor(Math.random() * 200) + 500,
+            Math.floor(Math.random() * 200) + 450
+        ];
+        
+        // Destroy existing chart if it exists
+        if (this.charts.gmbChart) {
+            this.charts.gmbChart.destroy();
+        }
+        
+        // Create new chart with updated data
+        this.charts.gmbChart = new Chart(gmbCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Profile Views',
+                    data: newData,
+                    borderColor: '#4D9A88',
+                    backgroundColor: 'rgba(77, 154, 136, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#4D9A88',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#4D9A88',
+                    pointHoverBorderColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Views: ' + context.parsed.y;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        display: false,
+                        beginAtZero: false
+                    },
+                    x: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+
+    // Perform Ranking Analysis
+    async performRankingAnalysis() {
+        const btn = event.target.closest('button');
+        const originalContent = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+        
+        this.showNotification('Analyzing local ranking opportunities...', 'info');
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Show analysis results
+        this.showNotification('Found 15 new keyword opportunities!', 'success');
+        
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+
+    // Perform Citation Search
+    async performCitationSearch() {
+        const btn = event.target.closest('button');
+        const originalContent = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Searching...';
+        
+        this.showNotification('Searching for citation opportunities...', 'info');
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Show search results
+        this.showNotification('Found 8 new citation opportunities!', 'success');
+        
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+
+    // Show notification with toast
     showNotification(message, type = 'info') {
         const colors = {
             info: '#4D9A88',
@@ -980,7 +1226,41 @@ class EnhancedSEODashboard {
             error: '#EF4444'
         };
         
-        // You can implement a toast notification system here
+        const icons = {
+            info: 'fa-info-circle',
+            success: 'fa-check-circle',
+            warning: 'fa-exclamation-triangle',
+            error: 'fa-times-circle'
+        };
+        
+        // Create toast notification
+        const toastId = 'toast-' + Date.now();
+        const toastHTML = `
+            <div id="${toastId}" class="fixed top-4 right-4 z-50 max-w-sm animate-slide-in">
+                <div class="glass-card rounded-lg p-4 flex items-center space-x-3" style="border-left: 4px solid ${colors[type]};">
+                    <i class="fas ${icons[type]} text-xl" style="color: ${colors[type]};"></i>
+                    <div class="flex-1">
+                        <p class="text-white text-sm font-medium">${message}</p>
+                    </div>
+                    <button onclick="document.getElementById('${toastId}').remove()" class="text-white/60 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Add toast to body
+        document.body.insertAdjacentHTML('beforeend', toastHTML);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.style.animation = 'slide-out 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+        
         console.log(`[${type.toUpperCase()}] ${message}`);
     }
 
