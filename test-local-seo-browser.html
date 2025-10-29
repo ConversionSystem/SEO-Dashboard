@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Local SEO</title>
+</head>
+<body>
+    <h1>Testing Local SEO Page</h1>
+    <button onclick="testAuth()">Test With Auth</button>
+    <button onclick="testNoAuth()">Test Without Auth</button>
+    <button onclick="openPage()">Open Local SEO Page</button>
+    <pre id="output"></pre>
+    
+    <script>
+        function log(msg) {
+            document.getElementById('output').innerText += msg + '\n';
+        }
+        
+        function testAuth() {
+            localStorage.setItem('accessToken', 'test-token-123');
+            log('Set access token: ' + localStorage.getItem('accessToken'));
+            log('Now click "Open Local SEO Page"');
+        }
+        
+        function testNoAuth() {
+            localStorage.clear();
+            log('Cleared localStorage');
+            log('Now click "Open Local SEO Page" - should redirect to login');
+        }
+        
+        function openPage() {
+            window.location.href = '/local-seo';
+        }
+        
+        log('Current accessToken: ' + (localStorage.getItem('accessToken') || 'none'));
+    </script>
+</body>
+</html>

@@ -1,30 +1,76 @@
 // Local SEO Tool - Comprehensive local search optimization
 class LocalSEOTool {
     constructor() {
+        console.log('Initializing Local SEO Tool...');
         this.accessToken = localStorage.getItem('accessToken');
         this.currentAnalysis = null;
         this.mapInstance = null;
         this.markers = [];
         this.competitorData = [];
-        this.init();
+        
+        // Initialize the tool
+        this.init().catch(error => {
+            console.error('Failed to initialize Local SEO Tool:', error);
+            this.showError('Failed to initialize the tool. Please try refreshing the page.');
+        });
     }
 
     async init() {
+        console.log('Checking authentication...');
+        
         // Check authentication
         if (!this.accessToken) {
+            console.log('No access token found, redirecting to login...');
             window.location.href = '/login';
             return;
         }
-
-        this.render();
-        this.attachEventListeners();
-        this.loadGoogleMapsAPI();
-        this.loadSavedLocations();
+        
+        console.log('Authentication OK, rendering UI...');
+        
+        try {
+            this.render();
+            this.attachEventListeners();
+            this.loadGoogleMapsAPI();
+            this.loadSavedLocations();
+            console.log('Local SEO Tool initialized successfully');
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            throw error;
+        }
+    }
+    
+    showError(message) {
+        const app = document.getElementById('app');
+        if (app) {
+            app.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-6xl mb-4"></i>
+                        <h2 class="text-2xl font-bold text-white mb-2">Error</h2>
+                        <p class="text-gray-400">${message}</p>
+                        <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-brand-teal text-white rounded hover:opacity-90">
+                            <i class="fas fa-redo mr-2"></i>Reload Page
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     render() {
         const app = document.getElementById('app');
-        app.innerHTML = `
+        
+        if (!app) {
+            console.error('App container not found!');
+            document.body.innerHTML = '<div id="app"></div>';
+            const newApp = document.getElementById('app');
+            if (!newApp) {
+                throw new Error('Failed to create app container');
+            }
+        }
+        
+        const targetElement = app || document.getElementById('app');
+        targetElement.innerHTML = `
             <!-- Header -->
             <header class="border-b border-gray-700">
                 <div class="container mx-auto px-6 py-4">
@@ -341,7 +387,7 @@ class LocalSEOTool {
             const rankings = rankingResults.map((res, idx) => {
                 if (res.data && res.data.local_pack) {
                     const mapPackRank = res.data.local_pack.items?.findIndex(
-                        (item: any) => item.title?.toLowerCase().includes(businessName.toLowerCase())
+                        (item) => item.title?.toLowerCase().includes(businessName.toLowerCase())
                     ) + 1 || 999;
                     
                     return {
@@ -386,7 +432,7 @@ class LocalSEOTool {
                     gmb: businessFound ? 80 : 40
                 },
                 rankings,
-                competitors: competitors.slice(0, 5).map((c: any) => ({
+                competitors: competitors.slice(0, 5).map((c) => ({
                     name: c.title,
                     overallScore: Math.round((c.rating / 5) * 100),
                     reviews: c.reviews_count,
@@ -1184,6 +1230,11 @@ class LocalSEOTool {
 }
 
 // Initialize the tool
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new LocalSEOTool();
+    });
+} else {
+    // DOM is already ready, initialize immediately
     new LocalSEOTool();
-});
+}
