@@ -566,6 +566,13 @@ app.get('/', (c) => {
                 <span>Analytics</span>
             </a>
             
+            <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 mt-6">AI Tools</div>
+            
+            <a href="#ai-optimization" id="ai-optimization" class="nav-item" onclick="loadAIOptimization(event)">
+                <i class="fas fa-robot nav-icon"></i>
+                <span>AI Optimization</span>
+            </a>
+            
             <div class="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 mt-6">System</div>
             
             <a href="#settings" class="nav-item" onclick="loadSettings(event)">

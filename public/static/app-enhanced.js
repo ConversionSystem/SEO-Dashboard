@@ -25,6 +25,7 @@ class EnhancedSEODashboard {
         window.loadBacklinks = this.loadBacklinks.bind(this);
         window.loadPerformance = this.loadPerformance.bind(this);
         window.loadAnalytics = this.loadAnalytics.bind(this);
+        window.loadAIOptimization = this.loadAIOptimization.bind(this);
         window.loadSettings = this.loadSettings.bind(this);
         window.handleLogout = this.handleLogout.bind(this);
         window.refreshCurrentView = this.refreshCurrentView.bind(this);
@@ -196,6 +197,14 @@ class EnhancedSEODashboard {
         this.renderAnalytics();
     }
 
+    loadAIOptimization(event) {
+        if (event) event.preventDefault();
+        this.setActiveNavItem('#ai-optimization');
+        this.updatePageTitle('AI Optimization');
+        this.currentView = 'ai-optimization';
+        this.renderAIOptimization();
+    }
+
     loadSettings(event) {
         if (event) event.preventDefault();
         this.setActiveNavItem('#settings');
@@ -246,6 +255,9 @@ class EnhancedSEODashboard {
                 break;
             case 'analytics':
                 this.loadAnalytics();
+                break;
+            case 'ai-optimization':
+                this.loadAIOptimization();
                 break;
             case 'settings':
                 this.loadSettings();
@@ -1795,6 +1807,738 @@ class EnhancedSEODashboard {
                 <p class="text-white/60">Analytics features coming soon...</p>
             </div>
         `;
+    }
+
+    // Render AI Optimization Dashboard
+    renderAIOptimization() {
+        const app = document.getElementById('app');
+        
+        // Initialize or get current tab
+        if (!this.aiOptimizationTab) {
+            this.aiOptimizationTab = 'keywords';
+        }
+        
+        app.innerHTML = `
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white mb-2 flex items-center">
+                            <i class="fas fa-robot mr-3 text-teal-400"></i>
+                            AI Optimization Suite
+                        </h1>
+                        <p class="text-white/60">Leverage AI-powered insights for next-generation SEO</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right">
+                            <p class="text-xs text-white/60">AI Credits</p>
+                            <p class="text-lg font-bold text-white">$<span id="aiCredits">26.82</span></p>
+                        </div>
+                        <button onclick="window.dashboard.refreshAICredits()" class="p-2 bg-white/10 rounded-lg hover:bg-white/20">
+                            <i class="fas fa-sync-alt text-white"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="glass-card rounded-xl p-1 mb-6">
+                <div class="flex flex-wrap gap-1">
+                    <button onclick="window.dashboard.switchAITab('keywords')" 
+                            id="ai-tab-keywords"
+                            class="ai-tab-button ${this.aiOptimizationTab === 'keywords' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-key mr-2"></i>AI Keywords
+                    </button>
+                    <button onclick="window.dashboard.switchAITab('llm')" 
+                            id="ai-tab-llm"
+                            class="ai-tab-button ${this.aiOptimizationTab === 'llm' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-brain mr-2"></i>LLM Responses
+                    </button>
+                    <button onclick="window.dashboard.switchAITab('content')" 
+                            id="ai-tab-content"
+                            class="ai-tab-button ${this.aiOptimizationTab === 'content' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-file-alt mr-2"></i>Content Optimizer
+                    </button>
+                    <button onclick="window.dashboard.switchAITab('prompts')" 
+                            id="ai-tab-prompts"
+                            class="ai-tab-button ${this.aiOptimizationTab === 'prompts' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-magic mr-2"></i>Prompt Library
+                    </button>
+                    <button onclick="window.dashboard.switchAITab('analysis')" 
+                            id="ai-tab-analysis"
+                            class="ai-tab-button ${this.aiOptimizationTab === 'analysis' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-chart-bar mr-2"></i>AI Analysis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content Container -->
+            <div id="aiOptimizationTabContent">
+                ${this.renderAIOptimizationTabContent()}
+            </div>
+
+            <style>
+                .ai-tab-button {
+                    color: rgba(255, 255, 255, 0.6);
+                    background: transparent;
+                }
+                .ai-tab-button:hover {
+                    color: rgba(255, 255, 255, 0.9);
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                .ai-tab-button.active {
+                    color: #FFFFFF;
+                    background: linear-gradient(135deg, #4D9A88 0%, #5FBAA8 100%);
+                    box-shadow: 0 2px 8px rgba(77, 154, 136, 0.3);
+                }
+            </style>
+        `;
+        
+        // Initialize charts if needed
+        setTimeout(() => {
+            if (this.aiOptimizationTab === 'keywords') {
+                this.initAIKeywordCharts();
+            } else if (this.aiOptimizationTab === 'analysis') {
+                this.initAIAnalysisCharts();
+            }
+        }, 100);
+    }
+
+    // Switch AI Optimization Tab
+    switchAITab(tab) {
+        this.aiOptimizationTab = tab;
+        
+        // Update tab buttons
+        document.querySelectorAll('.ai-tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const activeTab = document.getElementById(`ai-tab-${tab}`);
+        if (activeTab) {
+            activeTab.classList.add('active');
+        }
+        
+        // Update content
+        const contentContainer = document.getElementById('aiOptimizationTabContent');
+        if (contentContainer) {
+            contentContainer.innerHTML = this.renderAIOptimizationTabContent();
+            
+            // Re-initialize charts if needed
+            setTimeout(() => {
+                if (tab === 'keywords') {
+                    this.initAIKeywordCharts();
+                } else if (tab === 'analysis') {
+                    this.initAIAnalysisCharts();
+                }
+            }, 100);
+        }
+    }
+
+    // Render AI Optimization Tab Content
+    renderAIOptimizationTabContent() {
+        switch(this.aiOptimizationTab) {
+            case 'keywords':
+                return this.renderAIKeywordsTab();
+            case 'llm':
+                return this.renderLLMResponsesTab();
+            case 'content':
+                return this.renderContentOptimizerTab();
+            case 'prompts':
+                return this.renderPromptLibraryTab();
+            case 'analysis':
+                return this.renderAIAnalysisTab();
+            default:
+                return this.renderAIKeywordsTab();
+        }
+    }
+
+    // Render AI Keywords Tab
+    renderAIKeywordsTab() {
+        return `
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- AI Keyword Search -->
+                <div class="lg:col-span-2">
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">AI Keyword Discovery</h3>
+                        
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="text-sm text-white/60 mb-2 block">Enter keywords (one per line)</label>
+                                <textarea id="aiKeywordsInput" 
+                                          placeholder="marketing automation&#10;content strategy&#10;SEO tools&#10;digital marketing"
+                                          class="w-full bg-white/10 text-white placeholder-white/50 px-4 py-3 rounded-lg focus:outline-none focus:bg-white/20 h-32 resize-none"></textarea>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm text-white/60 mb-2 block">Location</label>
+                                    <select id="aiLocation" class="w-full bg-white/10 text-white px-4 py-2 rounded-lg focus:outline-none focus:bg-white/20">
+                                        <option value="us">United States</option>
+                                        <option value="uk">United Kingdom</option>
+                                        <option value="ca">Canada</option>
+                                        <option value="au">Australia</option>
+                                        <option value="global">Global</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="text-sm text-white/60 mb-2 block">Language</label>
+                                    <select id="aiLanguage" class="w-full bg-white/10 text-white px-4 py-2 rounded-lg focus:outline-none focus:bg-white/20">
+                                        <option value="en">English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button onclick="window.dashboard.analyzeAIKeywords()" 
+                                    class="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white py-3 rounded-lg hover:from-teal-600 hover:to-teal-700 transition-all">
+                                <i class="fas fa-search mr-2"></i>Analyze AI Search Volume
+                            </button>
+                        </div>
+                        
+                        <!-- Results Table -->
+                        <div id="aiKeywordResults" class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-white/10">
+                                        <th class="text-left text-white/60 text-sm py-3">Keyword</th>
+                                        <th class="text-center text-white/60 text-sm py-3">AI Volume</th>
+                                        <th class="text-center text-white/60 text-sm py-3">Trend</th>
+                                        <th class="text-center text-white/60 text-sm py-3">Growth</th>
+                                        <th class="text-center text-white/60 text-sm py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aiKeywordTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-white/40 py-8">
+                                            Enter keywords above to see AI search volume data
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Metrics Overview -->
+                <div class="space-y-4">
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">AI Search Metrics</h4>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-white/60">Total AI Volume</span>
+                                    <span class="text-lg font-bold text-white">45.2K</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-2">
+                                    <div class="h-2 rounded-full" style="width: 75%; background: linear-gradient(90deg, #4D9A88, #5FBAA8);"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-white/60">Avg Growth Rate</span>
+                                    <span class="text-lg font-bold text-green-400">+32%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-2">
+                                    <div class="h-2 rounded-full" style="width: 82%; background: linear-gradient(90deg, #10B981, #34D399);"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-white/60">Keywords Tracked</span>
+                                    <span class="text-lg font-bold text-white">127</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-2">
+                                    <div class="h-2 rounded-full" style="width: 63%; background: linear-gradient(90deg, #E05E0F, #F59E0B);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">Top AI Platforms</h4>
+                        <canvas id="aiPlatformsChart" height="200"></canvas>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">Quick Actions</h4>
+                        <div class="space-y-2">
+                            <button onclick="window.dashboard.exportAIKeywords()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-sm rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-download mr-2 text-teal-400"></i>Export Keywords
+                            </button>
+                            <button onclick="window.dashboard.importKeywordList()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-sm rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-upload mr-2 text-orange-400"></i>Import List
+                            </button>
+                            <button onclick="window.dashboard.scheduleAITracking()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-sm rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-clock mr-2 text-blue-400"></i>Schedule Tracking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Trend Analysis -->
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">AI Search Volume Trends</h3>
+                <canvas id="aiTrendsChart" height="300"></canvas>
+            </div>
+        `;
+    }
+
+    // Render LLM Responses Tab
+    renderLLMResponsesTab() {
+        return `
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Prompt Testing -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Multi-LLM Prompt Tester</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-white/60 mb-2 block">Enter your prompt</label>
+                                <textarea id="llmPrompt" 
+                                          placeholder="Write a meta description for a page about digital marketing services..."
+                                          class="w-full bg-white/10 text-white placeholder-white/50 px-4 py-3 rounded-lg focus:outline-none focus:bg-white/20 h-32 resize-none"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-white/60 mb-2 block">Select LLMs to test</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="llm-chatgpt" checked class="form-checkbox">
+                                        <span class="text-white text-sm">ChatGPT</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="llm-claude" checked class="form-checkbox">
+                                        <span class="text-white text-sm">Claude</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="llm-gemini" checked class="form-checkbox">
+                                        <span class="text-white text-sm">Gemini</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="llm-perplexity" class="form-checkbox">
+                                        <span class="text-white text-sm">Perplexity</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <button onclick="window.dashboard.testLLMPrompt('live')" 
+                                        class="flex-1 bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 transition-all">
+                                    <i class="fas fa-bolt mr-2"></i>Live Mode (Fast)
+                                </button>
+                                <button onclick="window.dashboard.testLLMPrompt('queue')" 
+                                        class="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-all">
+                                    <i class="fas fa-hourglass-half mr-2"></i>Queue Mode (Cost-effective)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- LLM Responses -->
+                    <div id="llmResponses" class="space-y-4">
+                        <div class="glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-white">ChatGPT Response</h4>
+                                <span class="text-xs text-white/60">Waiting...</span>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <p class="text-white/60 text-sm">Response will appear here...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card rounded-xl p-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-sm font-semibold text-white">Claude Response</h4>
+                                <span class="text-xs text-white/60">Waiting...</span>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <p class="text-white/60 text-sm">Response will appear here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings & History -->
+                <div class="space-y-4">
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">Model Settings</h4>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs text-white/60">Temperature</label>
+                                <input type="range" min="0" max="100" value="70" class="w-full">
+                                <div class="flex justify-between text-xs text-white/40">
+                                    <span>Precise</span>
+                                    <span>Creative</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs text-white/60">Max Tokens</label>
+                                <select class="w-full bg-white/10 text-white text-sm px-3 py-2 rounded">
+                                    <option>256</option>
+                                    <option selected>512</option>
+                                    <option>1024</option>
+                                    <option>2048</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="text-xs text-white/60">Response Format</label>
+                                <select class="w-full bg-white/10 text-white text-sm px-3 py-2 rounded">
+                                    <option>Plain Text</option>
+                                    <option>Markdown</option>
+                                    <option>JSON</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">Recent Prompts</h4>
+                        
+                        <div class="space-y-2">
+                            <div class="bg-white/5 rounded-lg p-3">
+                                <p class="text-xs text-white truncate">Meta description for digital...</p>
+                                <p class="text-xs text-white/40">2 hours ago</p>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-3">
+                                <p class="text-xs text-white truncate">Blog post outline for SEO...</p>
+                                <p class="text-xs text-white/40">5 hours ago</p>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-3">
+                                <p class="text-xs text-white truncate">Product description for...</p>
+                                <p class="text-xs text-white/40">1 day ago</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="window.dashboard.viewPromptHistory()" 
+                                class="w-full mt-3 px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20">
+                            View All History
+                        </button>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl p-6">
+                        <h4 class="text-sm font-semibold text-white mb-4">Cost Tracker</h4>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-white/60">Today</span>
+                                <span class="text-white">$2.45</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-white/60">This Week</span>
+                                <span class="text-white">$12.30</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-white/60">This Month</span>
+                                <span class="text-white">$45.67</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Other AI Optimization tabs
+    renderContentOptimizerTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">AI Content Optimizer</h3>
+                <p class="text-white/60">Content optimization features powered by AI coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderPromptLibraryTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Prompt Library</h3>
+                <p class="text-white/60">Pre-built SEO prompts library coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderAIAnalysisTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">AI Analysis & Insights</h3>
+                <p class="text-white/60">Deep AI-powered analysis features coming soon...</p>
+            </div>
+        `;
+    }
+
+    // Initialize AI Keyword Charts
+    initAIKeywordCharts() {
+        // AI Platforms Chart
+        const platformsCtx = document.getElementById('aiPlatformsChart');
+        if (platformsCtx && platformsCtx.getContext) {
+            try {
+                if (this.charts.aiPlatformsChart) {
+                    this.charts.aiPlatformsChart.destroy();
+                }
+                
+                this.charts.aiPlatformsChart = new Chart(platformsCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ChatGPT', 'Gemini', 'Claude', 'Perplexity'],
+                        datasets: [{
+                            data: [45, 25, 20, 10],
+                            backgroundColor: [
+                                'rgba(77, 154, 136, 0.8)',
+                                'rgba(224, 94, 15, 0.8)',
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(139, 92, 246, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { 
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: { size: 10 },
+                                    padding: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating AI platforms chart:', error);
+            }
+        }
+
+        // AI Trends Chart
+        const trendsCtx = document.getElementById('aiTrendsChart');
+        if (trendsCtx && trendsCtx.getContext) {
+            try {
+                if (this.charts.aiTrendsChart) {
+                    this.charts.aiTrendsChart.destroy();
+                }
+                
+                this.charts.aiTrendsChart = new Chart(trendsCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [
+                            {
+                                label: 'AI Search Volume',
+                                data: [12000, 15000, 18000, 22000, 28000, 35000, 42000, 48000, 52000, 58000, 62000, 68000],
+                                borderColor: '#4D9A88',
+                                backgroundColor: 'rgba(77, 154, 136, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Traditional Search Volume',
+                                data: [45000, 44000, 43000, 42000, 41000, 40000, 39000, 38000, 37000, 36000, 35000, 34000],
+                                borderColor: '#E05E0F',
+                                backgroundColor: 'rgba(224, 94, 15, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { 
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    font: { size: 11 }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { size: 10 }
+                                },
+                                grid: { 
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: { 
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { size: 10 }
+                                },
+                                grid: { 
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating AI trends chart:', error);
+            }
+        }
+    }
+
+    // Initialize AI Analysis Charts
+    initAIAnalysisCharts() {
+        // Implementation for AI analysis charts
+    }
+
+    // AI Optimization Action Handlers
+    refreshAICredits() {
+        this.showNotification('Refreshing AI credits...', 'info');
+        setTimeout(() => {
+            document.getElementById('aiCredits').textContent = '26.82';
+            this.showNotification('AI credits updated', 'success');
+        }, 1000);
+    }
+
+    async analyzeAIKeywords() {
+        const textarea = document.getElementById('aiKeywordsInput');
+        const keywords = textarea.value.split('\n').filter(k => k.trim());
+        
+        if (keywords.length === 0) {
+            this.showNotification('Please enter at least one keyword', 'warning');
+            return;
+        }
+        
+        this.showNotification(`Analyzing ${keywords.length} keywords for AI search volume...`, 'info');
+        
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Generate sample results
+        const tableBody = document.getElementById('aiKeywordTableBody');
+        tableBody.innerHTML = keywords.map(keyword => {
+            const volume = Math.floor(Math.random() * 10000) + 100;
+            const growth = Math.floor(Math.random() * 100) - 20;
+            return `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="py-3 text-white">${keyword}</td>
+                    <td class="py-3 text-center text-white">${volume.toLocaleString()}</td>
+                    <td class="py-3 text-center">
+                        <div class="inline-block w-20 h-6">
+                            <canvas class="trend-sparkline" data-trend="${[3,5,4,7,6,8,9].join(',')}"></canvas>
+                        </div>
+                    </td>
+                    <td class="py-3 text-center">
+                        <span class="${growth > 0 ? 'text-green-400' : 'text-red-400'}">
+                            ${growth > 0 ? '+' : ''}${growth}%
+                        </span>
+                    </td>
+                    <td class="py-3 text-center">
+                        <button onclick="window.dashboard.trackKeyword('${keyword}')" 
+                                class="px-3 py-1 bg-teal-500/20 text-teal-400 text-xs rounded hover:bg-teal-500/30">
+                            Track
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        this.showNotification('AI keyword analysis complete!', 'success');
+    }
+
+    async testLLMPrompt(mode) {
+        const prompt = document.getElementById('llmPrompt').value;
+        if (!prompt) {
+            this.showNotification('Please enter a prompt', 'warning');
+            return;
+        }
+        
+        const selectedLLMs = [];
+        if (document.getElementById('llm-chatgpt').checked) selectedLLMs.push('ChatGPT');
+        if (document.getElementById('llm-claude').checked) selectedLLMs.push('Claude');
+        if (document.getElementById('llm-gemini').checked) selectedLLMs.push('Gemini');
+        if (document.getElementById('llm-perplexity').checked) selectedLLMs.push('Perplexity');
+        
+        if (selectedLLMs.length === 0) {
+            this.showNotification('Please select at least one LLM', 'warning');
+            return;
+        }
+        
+        this.showNotification(`Testing prompt with ${selectedLLMs.length} LLMs in ${mode} mode...`, 'info');
+        
+        // Simulate API responses
+        const responsesContainer = document.getElementById('llmResponses');
+        responsesContainer.innerHTML = selectedLLMs.map(llm => `
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-semibold text-white">${llm} Response</h4>
+                    <span class="text-xs text-yellow-400">Processing...</span>
+                </div>
+                <div class="bg-white/5 rounded-lg p-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-teal-500 border-t-transparent"></div>
+                        <p class="text-white/60 text-sm">Generating response...</p>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Simulate delayed responses
+        setTimeout(() => {
+            responsesContainer.innerHTML = selectedLLMs.map(llm => `
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="text-sm font-semibold text-white">${llm} Response</h4>
+                        <span class="text-xs text-green-400">Complete</span>
+                    </div>
+                    <div class="bg-white/5 rounded-lg p-4">
+                        <p class="text-white text-sm">This is a sample response from ${llm} for your prompt: "${prompt.substring(0, 50)}..."</p>
+                        <div class="mt-3 pt-3 border-t border-white/10">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/40">Tokens: ${Math.floor(Math.random() * 200) + 100}</span>
+                                <span class="text-white/40">Time: ${(Math.random() * 2 + 0.5).toFixed(2)}s</span>
+                                <span class="text-white/40">Cost: $${(Math.random() * 0.01).toFixed(4)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            this.showNotification('All LLM responses received!', 'success');
+        }, 3000);
+    }
+
+    exportAIKeywords() {
+        this.showNotification('Exporting AI keywords to CSV...', 'info');
+        setTimeout(() => {
+            this.showNotification('Keywords exported successfully!', 'success');
+        }, 1500);
+    }
+
+    importKeywordList() {
+        this.showNotification('Opening import dialog...', 'info');
+    }
+
+    scheduleAITracking() {
+        this.showNotification('Opening tracking scheduler...', 'info');
+    }
+
+    trackKeyword(keyword) {
+        this.showNotification(`Added "${keyword}" to tracking list`, 'success');
+    }
+
+    viewPromptHistory() {
+        this.showNotification('Loading prompt history...', 'info');
     }
 
     renderSettings() {
