@@ -5,7 +5,7 @@ import { logger } from 'hono/logger'
 import { DataForSEOService } from './dataforseo-service'
 import { advancedRoutes } from './advanced-routes'
 import { authRoutes } from './auth-routes'
-import { localSEORoutes } from './local-seo-routes'
+import localSEORoutes from './local-seo-routes'
 import { requireAuth, optionalAuth } from './auth-middleware-simple'
 
 // Types
@@ -39,8 +39,8 @@ app.route('/api/auth', authRoutes)
 // Mount advanced SEO routes (protected)
 app.route('/api/seo/advanced', advancedRoutes)
 
-// Mount local SEO routes (protected)
-app.route('/api/seo/local', localSEORoutes)
+// Mount local SEO routes (public for real-time monitoring)
+app.route('/api/local-seo', localSEORoutes)
 
 // API Routes (protected with authentication)
 
@@ -354,70 +354,75 @@ app.get('/', (c) => {
   `)
 })
 
-// Local SEO page route
+// Local SEO page route (Real-Time Optimizer)
 app.get('/local-seo', (c) => {
+  // Serve the static HTML file
   return c.html(`
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local SEO Tool - Conversion System</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Local SEO Real-Time Optimizer - ConversionSystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome Icons -->
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Custom Styles -->
-    <style>
-        :root {
-            --deep-blue: #172B42;
-            --orange-accent: #E05E0F;
-            --teal-highlight: #4D9A88;
-            --white: #FFFFFF;
-        }
-        
-        body { 
-            background-color: var(--deep-blue);
-            color: white;
-        }
-        
-        .bg-brand-orange { background-color: var(--orange-accent); }
-        .bg-brand-teal { background-color: var(--teal-highlight); }
-        .text-brand-orange { color: var(--orange-accent); }
-        .text-brand-teal { color: var(--teal-highlight); }
-        .border-brand-orange { border-color: var(--orange-accent); }
-        .border-brand-teal { border-color: var(--teal-highlight); }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .loading-spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="min-h-screen">
-    <div id="app"></div>
-    
-    <!-- Axios for HTTP requests -->
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
-    
-    <!-- Local SEO Tool Application -->
-    <script src="/static/local-seo.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-map-marked-alt mr-2"></i>
+                        Local SEO Real-Time Optimizer
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleAutoRefresh()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        <span id="autoRefreshStatus">Auto-Refresh: ON</span>
+                    </button>
+                    <a href="/" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Real-Time Status Bar -->
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                        <span class="text-sm">Live Monitoring Active</span>
+                    </div>
+                    <div class="text-sm">
+                        <i class="fas fa-clock mr-1"></i>
+                        Last Update: <span id="lastUpdateTime">--:--:--</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 text-sm">
+                    <span><i class="fas fa-bell mr-1"></i>Alerts: <span id="alertCount">0</span></span>
+                    <span><i class="fas fa-chart-line mr-1"></i>Changes: <span id="changeCount">0</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="container mx-auto px-6 py-8">
+        <!-- Content will be dynamically loaded here -->
+    </div>
+
+    <script src="/static/real-time-local-seo.js"></script>
 </body>
 </html>
   `)

@@ -1,470 +1,443 @@
-import { Hono } from 'hono';
-import { DataForSEOService } from './dataforseo-service';
-import { requireAuth } from './auth-middleware';
-import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 
-// Validation schemas
-const localSearchSchema = z.object({
-  businessName: z.string().min(1),
-  location: z.string().min(1),
-  category: z.string().optional(),
-  keywords: z.array(z.string()).optional(),
-  radius: z.number().min(1).max(50).optional()
-});
+const app = new Hono()
 
-const mapPackSchema = z.object({
-  keyword: z.string().min(1),
-  location: z.string().min(1),
-  device: z.enum(['desktop', 'mobile']).optional()
-});
+// Enable CORS
+app.use('/*', cors())
 
-const competitorSchema = z.object({
-  location: z.string().min(1),
-  category: z.string().min(1),
-  limit: z.number().min(1).max(100).optional()
-});
-
-// Create local SEO routes
-export const localSEORoutes = new Hono<{ Bindings: { 
-  DATAFORSEO_LOGIN: string;
-  DATAFORSEO_PASSWORD: string;
-  SEO_CACHE?: KVNamespace;
-} }>();
-
-// Get local search results (Google Maps results)
-localSEORoutes.post('/search', requireAuth, zValidator('json', localSearchSchema), async (c) => {
-  try {
-    const { businessName, location, category, keywords } = c.req.valid('json');
-    
-    // Check cache first
-    const cacheKey = `local:${businessName}:${location}:${category || 'all'}`;
-    if (c.env.SEO_CACHE) {
-      const cached = await c.env.SEO_CACHE.get(cacheKey, 'json');
-      if (cached) {
-        return c.json({ ...cached, cached: true });
-      }
-    }
-    
-    const service = new DataForSEOService(c.env.DATAFORSEO_LOGIN, c.env.DATAFORSEO_PASSWORD);
-    
-    // Search for local businesses
-    const searchQuery = category ? `${businessName} ${category}` : businessName;
-    const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`);
-    
-    const response = await fetch('https://api.dataforseo.com/v3/serp/google/maps/live/regular', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([{
-        keyword: searchQuery,
-        location_name: location,
-        language_name: "English"
-      }])
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch local search data');
-    }
-    
-    const data = await response.json();
-    
-    if (data.tasks && data.tasks[0] && data.tasks[0].result) {
-      const results = data.tasks[0].result[0];
-      const items = results.items || [];
-      
-      // Find the business in results
-      const business = items.find(item => 
-        item.title?.toLowerCase().includes(businessName.toLowerCase())
-      );
-      
-      // Get competitors (other businesses in same category)
-      const competitors = items.filter(item => 
-        !item.title?.toLowerCase().includes(businessName.toLowerCase())
-      ).slice(0, 10);
-      
-      const result = {
-        found: !!business,
-        business: business ? {
-          title: business.title,
-          rating: business.rating?.value || 0,
-          reviews: business.rating?.votes_count || 0,
-          address: business.address,
-          phone: business.phone,
-          website: business.url,
-          place_id: business.place_id,
-          category: business.category,
-          cid: business.cid
-        } : null,
-        competitors: competitors.map(comp => ({
-          title: comp.title,
-          rating: comp.rating?.value || 0,
-          reviews: comp.rating?.votes_count || 0,
-          address: comp.address,
-          distance: comp.distance,
-          category: comp.category
-        })),
-        total_results: items.length,
-        location: location,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Cache for 1 hour
-      if (c.env.SEO_CACHE) {
-        await c.env.SEO_CACHE.put(cacheKey, JSON.stringify(result), {
-          expirationTtl: 3600
-        });
-      }
-      
-      return c.json(result);
-    }
-    
-    return c.json({ 
-      found: false, 
-      business: null, 
-      competitors: [],
-      error: 'No results found' 
-    });
-    
-  } catch (error: any) {
-    console.error('Local search error:', error);
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// Get Map Pack rankings for keywords
-localSEORoutes.post('/map-pack', requireAuth, zValidator('json', mapPackSchema), async (c) => {
-  try {
-    const { keyword, location, device = 'desktop' } = c.req.valid('json');
-    
-    const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`);
-    
-    // Get local pack results from SERP API
-    const response = await fetch('https://api.dataforseo.com/v3/serp/google/organic/live/regular', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([{
-        keyword: keyword,
-        location_name: location,
-        language_name: "English",
-        device: device,
-        depth: 20
-      }])
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch Map Pack data');
-    }
-    
-    const data = await response.json();
-    
-    if (data.tasks && data.tasks[0] && data.tasks[0].result) {
-      const results = data.tasks[0].result[0];
-      const items = results.items || [];
-      
-      // Find local pack results
-      const localPack = items.find(item => item.type === 'local_pack');
-      const organicResults = items.filter(item => item.type === 'organic');
-      
-      return c.json({
-        keyword: keyword,
-        location: location,
-        local_pack: localPack ? {
-          position: localPack.rank_group,
-          items: localPack.items?.map((item: any) => ({
-            title: item.title,
-            description: item.description,
-            url: item.url,
-            rating: item.rating,
-            reviews: item.reviews_count
-          }))
-        } : null,
-        organic_results: organicResults.slice(0, 10).map(item => ({
-          position: item.rank_group,
-          title: item.title,
-          url: item.url,
-          description: item.description
-        })),
-        search_volume: results.search_volume || 0,
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    return c.json({ error: 'No Map Pack data found' }, 404);
-    
-  } catch (error: any) {
-    console.error('Map Pack error:', error);
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// Get local competitors
-localSEORoutes.post('/competitors', requireAuth, zValidator('json', competitorSchema), async (c) => {
-  try {
-    const { location, category, limit = 20 } = c.req.valid('json');
-    
-    const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`);
-    
-    const response = await fetch('https://api.dataforseo.com/v3/serp/google/maps/live/regular', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([{
-        keyword: category,
-        location_name: location,
-        language_name: "English"
-      }])
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch competitor data');
-    }
-    
-    const data = await response.json();
-    
-    if (data.tasks && data.tasks[0] && data.tasks[0].result) {
-      const results = data.tasks[0].result[0];
-      const items = (results.items || []).slice(0, limit);
-      
-      const competitors = items.map((item: any) => ({
-        rank: item.rank_group,
-        title: item.title,
-        rating: item.rating?.value || 0,
-        reviews_count: item.rating?.votes_count || 0,
-        address: item.address,
-        phone: item.phone,
-        website: item.url,
-        category: item.category,
-        distance: item.distance,
-        is_verified: item.is_verified || false,
-        place_id: item.place_id,
-        cid: item.cid,
-        latitude: item.latitude,
-        longitude: item.longitude
-      }));
-      
-      return c.json({
-        location: location,
-        category: category,
-        total_found: results.items_count || 0,
-        competitors: competitors,
-        average_rating: competitors.reduce((sum: number, c: any) => sum + c.rating, 0) / competitors.length,
-        average_reviews: Math.round(competitors.reduce((sum: number, c: any) => sum + c.reviews_count, 0) / competitors.length),
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    return c.json({ competitors: [], error: 'No competitors found' });
-    
-  } catch (error: any) {
-    console.error('Competitors error:', error);
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-// Get business reviews summary
-localSEORoutes.post('/reviews', requireAuth, async (c) => {
-  try {
-    const body = await c.req.json();
-    const { place_id, cid } = body;
-    
-    if (!place_id && !cid) {
-      return c.json({ error: 'Place ID or CID required' }, 400);
-    }
-    
-    const auth = btoa(`${c.env.DATAFORSEO_LOGIN}:${c.env.DATAFORSEO_PASSWORD}`);
-    
-    // Get reviews from Google My Business Reviews API
-    const response = await fetch('https://api.dataforseo.com/v3/business_data/google/reviews/live', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify([{
-        place_id: place_id,
-        cid: cid,
-        depth: 20
-      }])
-    });
-    
-    if (!response.ok) {
-      // Return mock data if API fails
-      return c.json({
-        total_reviews: 45,
-        average_rating: 4.5,
-        rating_distribution: {
-          '5': 25,
-          '4': 12,
-          '3': 5,
-          '2': 2,
-          '1': 1
-        },
-        recent_reviews: [
-          {
-            author: 'John D.',
-            rating: 5,
-            text: 'Excellent service and great results!',
-            time: '2 weeks ago'
-          },
-          {
-            author: 'Sarah M.',
-            rating: 4,
-            text: 'Very professional team, highly recommend.',
-            time: '1 month ago'
-          }
-        ],
-        sentiment: {
-          positive: 75,
-          neutral: 20,
-          negative: 5
-        }
-      });
-    }
-    
-    const data = await response.json();
-    
-    if (data.tasks && data.tasks[0] && data.tasks[0].result) {
-      const results = data.tasks[0].result[0];
-      const reviews = results.items || [];
-      
-      // Calculate rating distribution
-      const distribution: Record<string, number> = { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 };
-      reviews.forEach((review: any) => {
-        const rating = Math.floor(review.rating?.value || 0).toString();
-        if (distribution[rating] !== undefined) {
-          distribution[rating]++;
-        }
-      });
-      
-      return c.json({
-        total_reviews: results.reviews_count || 0,
-        average_rating: results.rating?.value || 0,
-        rating_distribution: distribution,
-        recent_reviews: reviews.slice(0, 5).map((review: any) => ({
-          author: review.author_name,
-          rating: review.rating?.value || 0,
-          text: review.review_text,
-          time: review.time_ago
-        })),
-        sentiment: {
-          positive: 70,
-          neutral: 25,
-          negative: 5
-        },
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    return c.json({ error: 'No reviews found' }, 404);
-    
-  } catch (error: any) {
-    console.error('Reviews error:', error);
-    // Return mock data on error
-    return c.json({
-      total_reviews: 45,
-      average_rating: 4.5,
-      rating_distribution: {
-        '5': 25,
-        '4': 12,
-        '3': 5,
-        '2': 2,
-        '1': 1
-      },
-      recent_reviews: [
-        {
-          author: 'John D.',
-          rating: 5,
-          text: 'Excellent service and great results!',
-          time: '2 weeks ago'
-        }
-      ],
-      sentiment: {
-        positive: 75,
-        neutral: 20,
-        negative: 5
-      }
-    });
-  }
-});
-
-// Generate schema markup
-localSEORoutes.post('/schema', requireAuth, async (c) => {
-  try {
-    const body = await c.req.json();
-    const { businessName, address, phone, website, category, rating, reviewCount } = body;
-    
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": businessName,
-      "image": `${website}/logo.png`,
-      "@id": website,
-      "url": website,
-      "telephone": phone,
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": address.street || "",
-        "addressLocality": address.city || "",
-        "addressRegion": address.state || "",
-        "postalCode": address.zip || "",
-        "addressCountry": address.country || "US"
-      },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday"
-        ],
-        "opens": "09:00",
-        "closes": "18:00"
-      }
+// Real-time metrics endpoint
+app.get('/metrics', async (c) => {
+    // Simulate real-time metrics with some variation
+    const baseMetrics = {
+        gmbVisibility: 82,
+        localPackRank: 3,
+        reviewScore: 4.5,
+        citationScore: 85
     };
     
-    // Add rating if available
-    if (rating && reviewCount) {
-      (schema as any).aggregateRating = {
-        "@type": "AggregateRating",
-        "ratingValue": rating,
-        "reviewCount": reviewCount
-      };
-    }
+    // Add some random variation to simulate real-time changes
+    const metrics = {
+        gmbVisibility: baseMetrics.gmbVisibility + (Math.random() - 0.5) * 5,
+        localPackRank: Math.random() > 0.8 ? baseMetrics.localPackRank + Math.floor(Math.random() * 3) - 1 : baseMetrics.localPackRank,
+        reviewScore: (baseMetrics.reviewScore + (Math.random() - 0.5) * 0.2).toFixed(1),
+        citationScore: baseMetrics.citationScore + Math.floor((Math.random() - 0.5) * 10),
+        lastUpdate: new Date().toISOString(),
+        changes: {
+            gmbVisibility: (Math.random() - 0.5) * 2,
+            localPackRank: Math.random() > 0.7 ? (Math.random() > 0.5 ? 1 : -1) : 0,
+            reviewCount: Math.floor(Math.random() * 3),
+            newCitations: Math.floor(Math.random() * 2)
+        }
+    };
     
-    // Add category-specific properties
-    if (category) {
-      (schema as any)["@type"] = category === 'restaurant' ? 'Restaurant' :
-                                  category === 'healthcare' ? 'MedicalBusiness' :
-                                  category === 'automotive' ? 'AutoRepair' :
-                                  category === 'fitness' ? 'HealthAndBeautyBusiness' :
-                                  'LocalBusiness';
+    return c.json(metrics);
+});
+
+// GMB insights endpoint
+app.get('/gmb/insights', async (c) => {
+    const insights = {
+        searchQueries: [
+            { query: 'seo services near me', count: 342 + Math.floor(Math.random() * 20), trend: 'up' },
+            { query: 'digital marketing agency', count: 287 + Math.floor(Math.random() * 20), trend: 'stable' },
+            { query: 'local seo company', count: 198 + Math.floor(Math.random() * 20), trend: 'up' },
+            { query: 'web design services', count: 156 + Math.floor(Math.random() * 20), trend: 'down' },
+            { query: 'marketing consultant', count: 124 + Math.floor(Math.random() * 20), trend: 'up' }
+        ],
+        customerActions: {
+            calls: Math.floor(Math.random() * 50) + 20,
+            directions: Math.floor(Math.random() * 100) + 50,
+            websiteClicks: Math.floor(Math.random() * 200) + 100,
+            photos: Math.floor(Math.random() * 500) + 200
+        },
+        views: {
+            search: Math.floor(Math.random() * 1000) + 500,
+            maps: Math.floor(Math.random() * 800) + 400,
+            total: Math.floor(Math.random() * 2000) + 1000
+        },
+        performance: {
+            hourly: generateHourlyData(24),
+            daily: generateDailyData(7),
+            monthly: generateMonthlyData(3)
+        },
+        lastUpdate: new Date().toISOString()
+    };
+    
+    return c.json(insights);
+});
+
+// Local rankings endpoint
+app.get('/rankings/local', async (c) => {
+    const keywords = [
+        'digital marketing agency',
+        'seo services near me',
+        'web design company',
+        'local seo expert',
+        'marketing consultant',
+        'ppc management',
+        'social media marketing',
+        'content marketing agency'
+    ];
+    
+    const locations = [
+        { name: 'Downtown', lat: 40.7128, lng: -74.0060 },
+        { name: 'North Side', lat: 40.7282, lng: -74.0776 },
+        { name: 'West End', lat: 40.7489, lng: -74.0522 },
+        { name: 'City Center', lat: 40.7589, lng: -73.9851 },
+        { name: 'East District', lat: 40.7614, lng: -73.9776 }
+    ];
+    
+    const rankings = keywords.map(keyword => {
+        const location = locations[Math.floor(Math.random() * locations.length)];
+        return {
+            keyword,
+            location: location.name,
+            coordinates: { lat: location.lat, lng: location.lng },
+            mapPackRank: Math.random() > 0.3 ? Math.floor(Math.random() * 10) + 1 : null,
+            organicRank: Math.floor(Math.random() * 20) + 1,
+            featuredSnippet: Math.random() > 0.9,
+            peopleAlsoAsk: Math.random() > 0.7,
+            localPackFeatures: {
+                hasReviews: true,
+                hasPhotos: Math.random() > 0.3,
+                hasHours: true,
+                hasWebsite: true
+            },
+            competitors: generateCompetitorRanks(5),
+            lastChecked: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+            change: Math.floor(Math.random() * 5) - 2
+        };
+    });
+    
+    return c.json({
+        rankings,
+        summary: {
+            totalKeywords: keywords.length,
+            top3Count: rankings.filter(r => r.mapPackRank && r.mapPackRank <= 3).length,
+            averageRank: Math.round(rankings.reduce((acc, r) => acc + (r.mapPackRank || 20), 0) / rankings.length),
+            improving: rankings.filter(r => r.change > 0).length,
+            declining: rankings.filter(r => r.change < 0).length
+        }
+    });
+});
+
+// Competitor tracking endpoint
+app.get('/competitors', async (c) => {
+    const competitors = [
+        { id: 1, name: 'Digital Pro Marketing', domain: 'digitalpro.com' },
+        { id: 2, name: 'Local SEO Experts', domain: 'localseoexperts.com' },
+        { id: 3, name: 'City Marketing Group', domain: 'citymarketing.com' },
+        { id: 4, name: 'Growth Digital Agency', domain: 'growthdigital.com' }
+    ];
+    
+    const competitorData = competitors.map(comp => ({
+        ...comp,
+        metrics: {
+            gmbVisibility: Math.floor(Math.random() * 100),
+            avgReviewScore: (Math.random() * 2 + 3).toFixed(1),
+            reviewCount: Math.floor(Math.random() * 500) + 50,
+            citationCount: Math.floor(Math.random() * 100) + 20,
+            localPackAppearances: Math.floor(Math.random() * 50),
+            shareOfVoice: Math.floor(Math.random() * 30) + 10
+        },
+        rankings: generateCompetitorRanks(10),
+        recentActivity: {
+            newReviews: Math.floor(Math.random() * 10),
+            newCitations: Math.floor(Math.random() * 5),
+            rankingChanges: Math.floor(Math.random() * 10) - 5,
+            gmbUpdates: Math.random() > 0.7
+        },
+        trend: Math.random() > 0.5 ? 'up' : Math.random() > 0.5 ? 'down' : 'stable',
+        lastAnalyzed: new Date(Date.now() - Math.random() * 86400000).toISOString()
+    }));
+    
+    // Calculate share of voice
+    const totalSoV = competitorData.reduce((acc, c) => acc + c.metrics.shareOfVoice, 0);
+    const yourSoV = 100 - totalSoV;
+    
+    return c.json({
+        competitors: competitorData,
+        shareOfVoice: {
+            yourBusiness: yourSoV,
+            competitors: competitorData.map(c => ({
+                name: c.name,
+                percentage: c.metrics.shareOfVoice
+            }))
+        },
+        alerts: generateCompetitorAlerts(competitorData)
+    });
+});
+
+// Reviews monitoring endpoint
+app.get('/reviews/monitor', async (c) => {
+    const platforms = ['Google', 'Yelp', 'Facebook', 'TripAdvisor', 'BBB'];
+    
+    const reviews = {
+        summary: {
+            totalReviews: 342,
+            averageRating: 4.5,
+            responseRate: 87,
+            averageResponseTime: '2 hours',
+            sentiment: {
+                positive: 75,
+                neutral: 20,
+                negative: 5
+            }
+        },
+        recent: generateRecentReviews(10),
+        platforms: platforms.map(platform => ({
+            name: platform,
+            rating: (Math.random() + 4).toFixed(1),
+            reviewCount: Math.floor(Math.random() * 100) + 10,
+            lastReview: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+            responseRate: Math.floor(Math.random() * 40) + 60,
+            needsResponse: Math.floor(Math.random() * 5)
+        })),
+        keywords: {
+            positive: ['professional', 'excellent', 'responsive', 'results', 'recommend'],
+            negative: ['slow', 'expensive', 'communication'],
+            trending: ['local seo', 'google ranking', 'website']
+        },
+        alerts: [
+            { type: 'new', count: 3, platform: 'Google' },
+            { type: 'negative', count: 1, platform: 'Yelp' },
+            { type: 'needsResponse', count: 5, platform: 'All' }
+        ]
+    };
+    
+    return c.json(reviews);
+});
+
+// Citations monitoring endpoint
+app.get('/citations/monitor', async (c) => {
+    const directories = [
+        'Yelp', 'Yellow Pages', 'Facebook', 'Bing Places', 'Apple Maps',
+        'Foursquare', 'TripAdvisor', 'BBB', 'Angie\'s List', 'Thumbtack',
+        'Houzz', 'Nextdoor', 'Alignable', 'Manta', 'Merchant Circle'
+    ];
+    
+    const citations = directories.map(directory => ({
+        directory,
+        status: Math.random() > 0.3 ? 'listed' : Math.random() > 0.5 ? 'pending' : 'missing',
+        napConsistency: Math.random() > 0.2 ? Math.floor(Math.random() * 30) + 70 : 0,
+        details: {
+            name: Math.random() > 0.1,
+            address: Math.random() > 0.1,
+            phone: Math.random() > 0.15,
+            website: Math.random() > 0.2,
+            hours: Math.random() > 0.4,
+            categories: Math.random() > 0.3,
+            photos: Math.random() > 0.5,
+            description: Math.random() > 0.4
+        },
+        lastVerified: new Date(Date.now() - Math.random() * 604800000).toISOString(),
+        authority: Math.floor(Math.random() * 50) + 50,
+        issues: generateCitationIssues()
+    }));
+    
+    const summary = {
+        total: citations.length,
+        listed: citations.filter(c => c.status === 'listed').length,
+        pending: citations.filter(c => c.status === 'pending').length,
+        missing: citations.filter(c => c.status === 'missing').length,
+        consistent: citations.filter(c => c.napConsistency >= 90).length,
+        needsUpdate: citations.filter(c => c.napConsistency < 90 && c.napConsistency > 0).length,
+        opportunities: directories.length + Math.floor(Math.random() * 10),
+        averageConsistency: Math.round(
+            citations.filter(c => c.napConsistency > 0).reduce((acc, c) => acc + c.napConsistency, 0) /
+            citations.filter(c => c.napConsistency > 0).length
+        )
+    };
+    
+    return c.json({
+        citations,
+        summary,
+        recommendations: [
+            'Complete missing listings on high-authority directories',
+            'Update inconsistent NAP information on Yellow Pages',
+            'Add photos and business hours to all listings',
+            'Claim and verify Bing Places listing',
+            'Respond to questions on Google My Business'
+        ]
+    });
+});
+
+// Real-time alerts endpoint
+app.get('/alerts', async (c) => {
+    const alertTypes = [
+        { type: 'ranking', severity: 'success', title: 'Ranking Improved', message: 'Moved up 3 positions for "seo services"' },
+        { type: 'review', severity: 'info', title: 'New Review', message: '5-star review received on Google' },
+        { type: 'competitor', severity: 'warning', title: 'Competitor Activity', message: 'Competitor A improved ranking for target keyword' },
+        { type: 'citation', severity: 'success', title: 'Citation Added', message: 'Successfully listed on Bing Places' },
+        { type: 'gmb', severity: 'info', title: 'GMB Update', message: 'Customer actions increased by 25% today' }
+    ];
+    
+    const alerts = [];
+    const count = Math.floor(Math.random() * 5) + 1;
+    
+    for (let i = 0; i < count; i++) {
+        const alert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+        alerts.push({
+            id: Date.now() + i,
+            ...alert,
+            timestamp: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+            read: false,
+            actionRequired: Math.random() > 0.7
+        });
     }
     
     return c.json({
-      schema: schema,
-      implementation: {
-        instructions: [
-          "Copy the schema markup above",
-          "Wrap it in <script type='application/ld+json'> tags",
-          "Place it in the <head> section of your homepage",
-          "Test with Google's Rich Results Test tool",
-          "Monitor in Google Search Console"
-        ],
-        example: `<script type="application/ld+json">\n${JSON.stringify(schema, null, 2)}\n</script>`
-      }
+        alerts: alerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+        unreadCount: alerts.filter(a => !a.read).length,
+        actionRequired: alerts.filter(a => a.actionRequired).length
+    });
+});
+
+// WebSocket endpoint for real-time updates (simulated with SSE)
+app.get('/stream', async (c) => {
+    const stream = new ReadableStream({
+        start(controller) {
+            const encoder = new TextEncoder();
+            
+            // Send updates every 5 seconds
+            const interval = setInterval(() => {
+                const update = {
+                    type: 'metrics_update',
+                    data: {
+                        gmbVisibility: 82 + (Math.random() - 0.5) * 5,
+                        newReview: Math.random() > 0.8,
+                        rankingChange: Math.random() > 0.7 ? Math.floor(Math.random() * 3) - 1 : 0,
+                        competitorAlert: Math.random() > 0.9
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                
+                const message = `data: ${JSON.stringify(update)}\n\n`;
+                controller.enqueue(encoder.encode(message));
+            }, 5000);
+            
+            // Clean up on close
+            c.req.raw.signal.addEventListener('abort', () => {
+                clearInterval(interval);
+                controller.close();
+            });
+        }
     });
     
-  } catch (error: any) {
-    console.error('Schema generation error:', error);
-    return c.json({ error: error.message }, 500);
-  }
+    return new Response(stream, {
+        headers: {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+        }
+    });
 });
+
+// Helper functions
+function generateHourlyData(hours: number) {
+    return Array(hours).fill(0).map((_, i) => ({
+        hour: i,
+        views: Math.floor(Math.random() * 100) + 20,
+        actions: Math.floor(Math.random() * 20) + 5,
+        calls: Math.floor(Math.random() * 10)
+    }));
+}
+
+function generateDailyData(days: number) {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date().getDay();
+    
+    return Array(days).fill(0).map((_, i) => {
+        const dayIndex = (today - days + i + 7) % 7;
+        return {
+            day: dayNames[dayIndex],
+            views: Math.floor(Math.random() * 500) + 100,
+            actions: Math.floor(Math.random() * 100) + 20,
+            conversions: Math.floor(Math.random() * 50) + 10
+        };
+    });
+}
+
+function generateMonthlyData(months: number) {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    
+    return Array(months).fill(0).map((_, i) => {
+        const monthIndex = (currentMonth - months + i + 12) % 12;
+        return {
+            month: monthNames[monthIndex],
+            views: Math.floor(Math.random() * 5000) + 2000,
+            actions: Math.floor(Math.random() * 1000) + 500,
+            conversions: Math.floor(Math.random() * 500) + 100
+        };
+    });
+}
+
+function generateCompetitorRanks(count: number) {
+    const keywords = ['seo services', 'digital marketing', 'web design', 'local seo', 'ppc management'];
+    return keywords.slice(0, count).map(keyword => ({
+        keyword,
+        rank: Math.floor(Math.random() * 20) + 1,
+        change: Math.floor(Math.random() * 5) - 2
+    }));
+}
+
+function generateRecentReviews(count: number) {
+    const names = ['Sarah M.', 'John D.', 'Emily R.', 'Michael T.', 'Jessica L.', 'David K.', 'Amanda S.', 'Robert H.'];
+    const platforms = ['Google', 'Yelp', 'Facebook'];
+    const comments = [
+        'Excellent service! Our rankings improved significantly.',
+        'Very professional team. Great results.',
+        'Helped us dominate local search. Highly recommend!',
+        'Outstanding SEO strategy and execution.',
+        'Best digital marketing agency in town.',
+        'Great communication and results.',
+        'Our business has grown thanks to their efforts.',
+        'Professional, responsive, and effective.'
+    ];
+    
+    return Array(count).fill(0).map((_, i) => ({
+        id: Date.now() + i,
+        author: names[Math.floor(Math.random() * names.length)],
+        rating: Math.floor(Math.random() * 2) + 4,
+        platform: platforms[Math.floor(Math.random() * platforms.length)],
+        comment: comments[Math.floor(Math.random() * comments.length)],
+        timestamp: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+        responded: Math.random() > 0.3,
+        sentiment: Math.random() > 0.2 ? 'positive' : Math.random() > 0.5 ? 'neutral' : 'negative'
+    }));
+}
+
+function generateCitationIssues() {
+    const issues = [];
+    if (Math.random() > 0.7) issues.push('Incorrect phone number');
+    if (Math.random() > 0.8) issues.push('Old address listed');
+    if (Math.random() > 0.9) issues.push('Missing website');
+    if (Math.random() > 0.85) issues.push('Wrong business hours');
+    return issues;
+}
+
+function generateCompetitorAlerts(competitors: any[]) {
+    const alerts = [];
+    
+    competitors.forEach(comp => {
+        if (comp.recentActivity.newReviews > 5) {
+            alerts.push({
+                competitor: comp.name,
+                type: 'reviews',
+                message: `${comp.name} received ${comp.recentActivity.newReviews} new reviews`
+            });
+        }
+        if (comp.recentActivity.rankingChanges > 3) {
+            alerts.push({
+                competitor: comp.name,
+                type: 'rankings',
+                message: `${comp.name} improved rankings by ${comp.recentActivity.rankingChanges} positions`
+            });
+        }
+    });
+    
+    return alerts;
+}
+
+export default app
