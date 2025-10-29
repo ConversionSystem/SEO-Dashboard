@@ -34,12 +34,269 @@ let updateIntervals = {};
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Real-Time Local SEO Monitor...');
+    renderDashboard();
     initializeCharts();
     startRealTimeUpdates();
     loadInitialData();
     setupEventListeners();
     updateLastUpdateTime();
 });
+
+// Render the dashboard HTML structure
+function renderDashboard() {
+    const app = document.getElementById('app');
+    if (!app) return;
+    
+    app.innerHTML = `
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- GMB Visibility Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-blue-100 p-3 rounded-lg">
+                        <i class="fas fa-eye text-blue-600 text-xl"></i>
+                    </div>
+                    <span id="gmbChange" class="text-green-600">
+                        <i class="fas fa-arrow-up mr-1"></i>+2.3%
+                    </span>
+                </div>
+                <div class="mb-2">
+                    <h3 class="text-gray-500 text-sm font-medium">GMB Visibility</h3>
+                    <div class="flex items-baseline">
+                        <span id="gmbVisibility" class="text-3xl font-bold text-gray-800">82</span>
+                        <span class="text-gray-500 ml-1">%</span>
+                    </div>
+                </div>
+                <canvas id="gmbMiniChart" height="50"></canvas>
+            </div>
+
+            <!-- Local Pack Rank Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Live</span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium mb-2">Local Pack Rank</h3>
+                <div class="flex items-center justify-between">
+                    <span id="localPackRank" class="text-3xl font-bold text-gray-800">3</span>
+                    <div class="text-sm text-gray-500">
+                        <div id="mapPackStatus">Top 3</div>
+                        <div id="organicStatus" class="text-xs">Organic: #5</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Score Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-yellow-100 p-3 rounded-lg">
+                        <i class="fas fa-star text-yellow-600 text-xl"></i>
+                    </div>
+                    <span id="newReviews" class="text-xs text-gray-500">3 new today</span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium mb-2">Review Score</h3>
+                <div class="flex items-center">
+                    <span id="reviewScore" class="text-3xl font-bold text-gray-800">4.5</span>
+                    <div class="flex ml-2">
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                    </div>
+                </div>
+                <div id="reviewCount" class="text-xs text-gray-500 mt-2">342 reviews</div>
+            </div>
+
+            <!-- Citation Score Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="bg-purple-100 p-3 rounded-lg">
+                        <i class="fas fa-link text-purple-600 text-xl"></i>
+                    </div>
+                    <span id="citationStatus" class="text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>Healthy
+                    </span>
+                </div>
+                <h3 class="text-gray-500 text-sm font-medium mb-2">Citation Score</h3>
+                <div class="mb-2">
+                    <span id="citationScore" class="text-3xl font-bold text-gray-800">85</span>
+                    <span class="text-gray-500 ml-1">%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="citationBar" class="bg-purple-600 h-2 rounded-full" style="width: 85%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabbed Content -->
+        <div class="bg-white rounded-xl shadow-lg mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="switchTab('gmb')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 active border-b-2 border-blue-600 text-blue-600">
+                        <i class="fas fa-building mr-2"></i>GMB Insights
+                    </button>
+                    <button onclick="switchTab('rankings')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                        <i class="fas fa-chart-line mr-2"></i>Local Rankings
+                    </button>
+                    <button onclick="switchTab('competitors')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                        <i class="fas fa-users mr-2"></i>Competitors
+                    </button>
+                    <button onclick="switchTab('reviews')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                        <i class="fas fa-star mr-2"></i>Reviews
+                    </button>
+                    <button onclick="switchTab('citations')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                        <i class="fas fa-link mr-2"></i>Citations
+                    </button>
+                    <button onclick="switchTab('alerts')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                        <i class="fas fa-bell mr-2"></i>Alerts
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- GMB Tab -->
+                <div id="gmb-tab" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- GMB Performance Chart -->
+                        <div class="lg:col-span-2">
+                            <h3 class="text-lg font-semibold mb-4">Performance Trends</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <canvas id="gmbPerformanceChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Queries -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Top Search Queries</h3>
+                            <div id="searchQueries" class="space-y-2">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold mt-6 mb-4">Customer Actions</h3>
+                            <div id="customerActions" class="space-y-2">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rankings Tab -->
+                <div id="rankings-tab" class="tab-content hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Local Search Rankings</h3>
+                        <button onclick="refreshRankings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyword</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Map Pack</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organic</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
+                                </tr>
+                            </thead>
+                            <tbody id="localRankingsTable" class="bg-white divide-y divide-gray-200">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Competitors Tab -->
+                <div id="competitors-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Competitor Visibility</h3>
+                            <div id="competitorList" class="space-y-2">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Share of Voice</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <canvas id="shareOfVoiceChart" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Tab -->
+                <div id="reviews-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Recent Reviews</h3>
+                            <div id="reviewsFeed" class="space-y-4">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Sentiment Analysis</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <canvas id="sentimentChart" height="150"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Citations Tab -->
+                <div id="citations-tab" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold mb-4">Directory Listings</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Directory</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">NAP Consistency</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="citationsTable" class="bg-white">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Alerts Tab -->
+                <div id="alerts-tab" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold mb-4">Real-Time Alerts</h3>
+                    <div id="alertsList" class="space-y-4">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <button onclick="scanGMB()" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                <i class="fas fa-search mr-2"></i>Scan GMB
+            </button>
+            <button onclick="checkCompetitors()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition flex items-center justify-center">
+                <i class="fas fa-users mr-2"></i>Check Competitors
+            </button>
+            <button onclick="analyzeReviews()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                <i class="fas fa-star mr-2"></i>Analyze Reviews
+            </button>
+            <button onclick="findCitations()" class="bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
+                <i class="fas fa-link mr-2"></i>Find Citations
+            </button>
+            <button onclick="refreshRankings()" class="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition flex items-center justify-center">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh All
+            </button>
+        </div>
+    `;
+}
 
 // Initialize all charts
 function initializeCharts() {
