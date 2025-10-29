@@ -6,7 +6,7 @@ import { DataForSEOService } from './dataforseo-service'
 import { advancedRoutes } from './advanced-routes'
 import { authRoutes } from './auth-routes'
 import { localSEORoutes } from './local-seo-routes'
-import { requireAuth, optionalAuth } from './auth-middleware'
+import { requireAuth, optionalAuth } from './auth-middleware-simple'
 
 // Types
 type Bindings = {

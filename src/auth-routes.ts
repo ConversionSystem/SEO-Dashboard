@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { AuthServiceCF } from './auth-service-cf';
-import { requireAuth, optionalAuth, requireAdmin } from './auth-middleware';
+import { requireAuth, optionalAuth, requireAdmin } from './auth-middleware-simple';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 
@@ -40,24 +40,51 @@ const updateRoleSchema = z.object({
 // Create auth routes
 export const authRoutes = new Hono<{ Bindings: { DB: D1Database } }>();
 
-// Login endpoint
+// Login endpoint - Simplified for demo without database
 authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
   const { email, password } = c.req.valid('json');
-  const authService = new AuthServiceCF(c.env.DB, c.env);
   
-  const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For');
-  const userAgent = c.req.header('User-Agent');
+  // Demo users - hardcoded for immediate functionality
+  const DEMO_USERS = [
+    { id: 1, email: 'admin@conversionsystem.com', password: 'admin123', name: 'Admin User', role: 'admin', team_id: 1 },
+    { id: 2, email: 'demo@conversionsystem.com', password: 'demo123', name: 'Demo User', role: 'user', team_id: 1 },
+    { id: 3, email: 'manager@conversionsystem.com', password: 'demo123', name: 'Manager User', role: 'manager', team_id: 1 }
+  ];
   
-  const result = await authService.login(email, password, ipAddress, userAgent);
+  // Find user
+  const user = DEMO_USERS.find(u => u.email === email && u.password === password);
   
-  if (!result.success) {
-    return c.json({ error: result.error }, 401);
+  if (!user) {
+    return c.json({ error: 'Invalid credentials' }, 401);
   }
+  
+  // Generate simple tokens
+  const payload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    teamId: user.team_id,
+    exp: Date.now() + 3600000 // 1 hour
+  };
+  
+  // Simple token generation (base64 encoded for demo)
+  const accessToken = btoa(JSON.stringify(payload));
+  const refreshToken = 'refresh_' + Math.random().toString(36).substring(2);
   
   return c.json({
     success: true,
-    user: result.user,
-    tokens: result.tokens
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      team_id: user.team_id
+    },
+    tokens: {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      expiresIn: 3600
+    }
   });
 });
 
