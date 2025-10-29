@@ -142,8 +142,10 @@ class EnhancedSEODashboard {
 
     loadLocalSEO(event) {
         if (event) event.preventDefault();
-        // Redirect to dedicated Local SEO page
-        window.location.href = '/local-seo';
+        this.setActiveNavItem('#local-seo');
+        this.updatePageTitle('Local SEO Monitor');
+        this.currentView = 'local-seo';
+        this.renderLocalSEO();
     }
 
     loadKeywordResearch(event) {
@@ -223,6 +225,9 @@ class EnhancedSEODashboard {
         switch(this.currentView) {
             case 'dashboard':
                 this.loadDashboard();
+                break;
+            case 'local-seo':
+                this.loadLocalSEO();
                 break;
             case 'keywords':
                 this.loadKeywordResearch();
@@ -522,6 +527,461 @@ class EnhancedSEODashboard {
                 }
             }
         }, 100); // Small delay to ensure DOM is ready
+    }
+
+    // Render Local SEO Dashboard
+    renderLocalSEO() {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+            <!-- Top Metrics Bar -->
+            <div class="glass-card rounded-xl p-4 mb-6">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- GMB Visibility -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">GMB Visibility</div>
+                        <div class="text-2xl font-bold text-white">
+                            <span id="gmbVisibility">87</span>%
+                        </div>
+                        <div id="gmbChange" class="text-xs" style="color: #4D9A88;">
+                            <i class="fas fa-arrow-up"></i> +2.3%
+                        </div>
+                    </div>
+                    
+                    <!-- Local Pack Rank -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">Local Pack</div>
+                        <div class="text-2xl font-bold" style="color: #4D9A88;">
+                            #<span id="localPackRank">2</span>
+                        </div>
+                        <div class="text-xs text-white/40">Top 3</div>
+                    </div>
+                    
+                    <!-- Reviews -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">Review Score</div>
+                        <div class="text-2xl font-bold text-white">
+                            <span id="reviewScore">4.8</span>
+                            <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                        </div>
+                        <div class="text-xs text-white/40">
+                            <span id="reviewCount">247</span> reviews
+                        </div>
+                    </div>
+                    
+                    <!-- Citations -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">Citations</div>
+                        <div class="text-2xl font-bold text-white">
+                            <span id="citationScore">92</span>%
+                        </div>
+                        <div class="text-xs text-white/40">Consistency</div>
+                    </div>
+                    
+                    <!-- Competitors -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">vs Competitors</div>
+                        <div class="text-2xl font-bold" style="color: #E05E0F;">
+                            #<span id="competitorRank">1</span>
+                        </div>
+                        <div class="text-xs text-white/40">Leading</div>
+                    </div>
+                    
+                    <!-- Live Status -->
+                    <div class="text-center">
+                        <div class="text-xs text-white/60 mb-1">Status</div>
+                        <div class="flex items-center justify-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                            <span class="text-sm text-white">Live</span>
+                        </div>
+                        <div class="text-xs text-white/40" id="lastUpdate">Now</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Left Column - GMB Performance -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">GMB Performance</h3>
+                        <button onclick="window.localSEODashboard && window.localSEODashboard.scanGMB()" 
+                                style="background-color: #4D9A88;" 
+                                class="text-white px-3 py-1 rounded text-sm hover:opacity-90">
+                            <i class="fas fa-sync-alt mr-1"></i>Scan
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-white/60">Profile Views</span>
+                                <span class="text-white font-medium">2,847</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="h-2 rounded-full" style="width: 85%; background-color: #4D9A88;"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-white/60">Search Queries</span>
+                                <span class="text-white font-medium">1,523</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="h-2 rounded-full" style="width: 72%; background-color: #E05E0F;"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-white/60">Direction Requests</span>
+                                <span class="text-white font-medium">426</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="h-2 rounded-full" style="width: 45%; background-color: #4D9A88;"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-white/60">Phone Calls</span>
+                                <span class="text-white font-medium">189</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="h-2 rounded-full" style="width: 35%; background-color: #E05E0F;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <canvas id="gmbTrendChart" height="150"></canvas>
+                    </div>
+                </div>
+
+                <!-- Middle Column - Local Rankings -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Local Rankings</h3>
+                        <span class="text-xs text-white/40">5 mile radius</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white font-medium">plumber near me</p>
+                                    <p class="text-xs text-white/40">High intent</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold" style="color: #4D9A88;">#1</p>
+                                    <p class="text-xs text-green-400">↑ 2</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white font-medium">emergency plumber</p>
+                                    <p class="text-xs text-white/40">High value</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold" style="color: #4D9A88;">#2</p>
+                                    <p class="text-xs text-white/40">—</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white font-medium">24 hour plumber</p>
+                                    <p class="text-xs text-white/40">Service specific</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold" style="color: #E05E0F;">#4</p>
+                                    <p class="text-xs text-red-400">↓ 1</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white font-medium">water heater repair</p>
+                                    <p class="text-xs text-white/40">Specific service</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xl font-bold text-white">#5</p>
+                                    <p class="text-xs text-green-400">↑ 3</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <button onclick="window.localSEODashboard && window.localSEODashboard.analyzeRankings()" 
+                                style="background-color: #E05E0F;" 
+                                class="w-full text-white py-2 rounded hover:opacity-90">
+                            <i class="fas fa-chart-line mr-2"></i>Track More Keywords
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column - Reviews & Alerts -->
+                <div class="glass-card rounded-xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white">Recent Reviews</h3>
+                        <div class="flex items-center space-x-1">
+                            <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                            <span class="text-white font-medium">4.8</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex">
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                </div>
+                                <span class="text-xs text-white/40">2h ago</span>
+                            </div>
+                            <p class="text-sm text-white/80">"Excellent service! Quick response time and professional work."</p>
+                            <p class="text-xs text-white/40 mt-1">- John D.</p>
+                        </div>
+                        
+                        <div class="p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex">
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
+                                    <i class="far fa-star text-xs text-white/20"></i>
+                                </div>
+                                <span class="text-xs text-white/40">1d ago</span>
+                            </div>
+                            <p class="text-sm text-white/80">"Very satisfied with the repair work. Would recommend."</p>
+                            <p class="text-xs text-white/40 mt-1">- Sarah M.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <h4 class="text-sm font-semibold text-white mb-3">Recent Alerts</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                <span class="text-white/60">Ranking improved for "plumber near me"</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                                <span class="text-white/60">New competitor detected in area</span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                <span class="text-white/60">Citation found on Yelp</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section - Competitors and Citations -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Competitor Analysis -->
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Top Competitors</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3" 
+                                     style="background-color: #4D9A88;">1</div>
+                                <div>
+                                    <p class="text-white font-medium">Your Business</p>
+                                    <p class="text-xs text-white/40">87% visibility</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold" style="color: #4D9A88;">Leading</p>
+                                <p class="text-xs text-white/40">4.8 ★ (247)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold mr-3">2</div>
+                                <div>
+                                    <p class="text-white font-medium">Competitor A</p>
+                                    <p class="text-xs text-white/40">82% visibility</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-white/60">-5%</p>
+                                <p class="text-xs text-white/40">4.6 ★ (189)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold mr-3">3</div>
+                                <div>
+                                    <p class="text-white font-medium">Competitor B</p>
+                                    <p class="text-xs text-white/40">75% visibility</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-white/60">-12%</p>
+                                <p class="text-xs text-white/40">4.5 ★ (156)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Citation Health -->
+                <div class="glass-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Citation Health</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="p-3 bg-white/5 rounded-lg text-center">
+                            <p class="text-2xl font-bold" style="color: #4D9A88;">45</p>
+                            <p class="text-xs text-white/40">Total Citations</p>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-lg text-center">
+                            <p class="text-2xl font-bold text-white">92%</p>
+                            <p class="text-xs text-white/40">NAP Consistency</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-white/60">Google My Business</span>
+                            <span class="text-green-400">✓ Verified</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-white/60">Yelp</span>
+                            <span class="text-green-400">✓ Listed</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-white/60">Facebook</span>
+                            <span class="text-green-400">✓ Claimed</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-white/60">Apple Maps</span>
+                            <span class="text-yellow-400">⚠ Inconsistent NAP</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-white/60">Bing Places</span>
+                            <span class="text-red-400">✗ Not Listed</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="window.localSEODashboard && window.localSEODashboard.findCitations()" 
+                            style="background-color: #172B42; border: 1px solid #4D9A88;" 
+                            class="w-full text-white py-2 rounded mt-4 hover:opacity-90">
+                        <i class="fas fa-search mr-2"></i>Find More Citations
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Initialize Local SEO specific features
+        this.initLocalSEOCharts();
+        this.startLocalSEOUpdates();
+    }
+
+    // Initialize Local SEO Charts
+    initLocalSEOCharts() {
+        setTimeout(() => {
+            // GMB Trend Chart
+            const gmbCtx = document.getElementById('gmbTrendChart');
+            if (gmbCtx && gmbCtx.getContext) {
+                try {
+                    new Chart(gmbCtx.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Profile Views',
+                                data: [320, 380, 420, 390, 450, 520, 480],
+                                borderColor: '#4D9A88',
+                                backgroundColor: 'rgba(77, 154, 136, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff'
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    display: false,
+                                    beginAtZero: true
+                                },
+                                x: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error creating GMB trend chart:', error);
+                }
+            }
+        }, 100);
+    }
+
+    // Start Local SEO Real-time Updates
+    startLocalSEOUpdates() {
+        // Simulate real-time updates
+        if (!window.localSEODashboard) {
+            window.localSEODashboard = {
+                scanGMB: () => {
+                    console.log('Scanning GMB profile...');
+                    this.showNotification('Scanning GMB profile...', 'info');
+                },
+                analyzeRankings: () => {
+                    console.log('Analyzing local rankings...');
+                    this.showNotification('Analyzing local rankings...', 'info');
+                },
+                findCitations: () => {
+                    console.log('Finding citation opportunities...');
+                    this.showNotification('Finding citation opportunities...', 'info');
+                }
+            };
+        }
+        
+        // Update last update time
+        setInterval(() => {
+            const lastUpdate = document.getElementById('lastUpdate');
+            if (lastUpdate && this.currentView === 'local-seo') {
+                lastUpdate.textContent = 'Updated ' + new Date().toLocaleTimeString();
+            }
+        }, 30000); // Update every 30 seconds
+    }
+
+    // Show notification
+    showNotification(message, type = 'info') {
+        const colors = {
+            info: '#4D9A88',
+            success: '#10B981',
+            warning: '#F59E0B',
+            error: '#EF4444'
+        };
+        
+        // You can implement a toast notification system here
+        console.log(`[${type.toUpperCase()}] ${message}`);
     }
 
     // Render Keyword Research
