@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Testing Login Flow</h1>
+    <div id="status"></div>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testDashboard()">Test Dashboard Access</button>
+    
+    <script>
+        async function testLogin() {
+            const status = document.getElementById('status');
+            try {
+                status.innerHTML = 'Logging in...';
+                
+                const response = await axios.post('/api/auth/login', {
+                    email: 'demo@conversionsystem.com',
+                    password: 'demo123'
+                });
+                
+                if (response.data.success) {
+                    // Store tokens
+                    localStorage.setItem('accessToken', response.data.tokens.accessToken);
+                    localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+                    localStorage.setItem('user', JSON.stringify(response.data.user));
+                    
+                    status.innerHTML = `✅ Login successful! User: ${response.data.user.name}<br>
+                        Access Token stored: ${response.data.tokens.accessToken.substring(0, 20)}...<br>
+                        Now redirecting to dashboard...`;
+                    
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    status.innerHTML = '❌ Login failed: ' + (response.data.error || 'Unknown error');
+                }
+            } catch (error) {
+                status.innerHTML = '❌ Error: ' + error.message;
+                console.error(error);
+            }
+        }
+        
+        async function testDashboard() {
+            const status = document.getElementById('status');
+            const token = localStorage.getItem('accessToken');
+            
+            if (!token) {
+                status.innerHTML = '❌ No access token found. Please login first.';
+                return;
+            }
+            
+            try {
+                status.innerHTML = 'Testing dashboard access...';
+                
+                const response = await axios.get('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                status.innerHTML = `✅ Dashboard access successful!<br>
+                    User: ${response.data.user.name}<br>
+                    Role: ${response.data.user.role}<br>
+                    Team: ${response.data.team?.name || 'No team'}`;
+                    
+            } catch (error) {
+                if (error.response?.status === 401) {
+                    status.innerHTML = '❌ Authentication failed. Token may be expired.';
+                } else {
+                    status.innerHTML = '❌ Error: ' + error.message;
+                }
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
