@@ -529,74 +529,79 @@ class EnhancedSEODashboard {
         }, 100); // Small delay to ensure DOM is ready
     }
 
-    // Render Local SEO Dashboard
+    // Render Local SEO Dashboard with Tabs
     renderLocalSEO() {
         const app = document.getElementById('app');
+        
+        // Initialize or get current tab
+        if (!this.localSEOTab) {
+            this.localSEOTab = 'gmb'; // Default to GMB Performance tab
+        }
+        
         app.innerHTML = `
-            <!-- Top Metrics Bar -->
-            <div class="glass-card rounded-xl p-4 mb-6">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <!-- GMB Visibility -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">GMB Visibility</div>
-                        <div class="text-2xl font-bold text-white">
-                            <span id="gmbVisibility">87</span>%
-                        </div>
-                        <div id="gmbChange" class="text-xs" style="color: #4D9A88;">
-                            <i class="fas fa-arrow-up"></i> +2.3%
-                        </div>
-                    </div>
-                    
-                    <!-- Local Pack Rank -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">Local Pack</div>
-                        <div class="text-2xl font-bold" style="color: #4D9A88;">
-                            #<span id="localPackRank">2</span>
-                        </div>
-                        <div class="text-xs text-white/40">Top 3</div>
-                    </div>
-                    
-                    <!-- Reviews -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">Review Score</div>
-                        <div class="text-2xl font-bold text-white">
-                            <span id="reviewScore">4.8</span>
-                            <i class="fas fa-star text-xs" style="color: #E05E0F;"></i>
-                        </div>
-                        <div class="text-xs text-white/40">
-                            <span id="reviewCount">247</span> reviews
-                        </div>
-                    </div>
-                    
-                    <!-- Citations -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">Citations</div>
-                        <div class="text-2xl font-bold text-white">
-                            <span id="citationScore">92</span>%
-                        </div>
-                        <div class="text-xs text-white/40">Consistency</div>
-                    </div>
-                    
-                    <!-- Competitors -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">vs Competitors</div>
-                        <div class="text-2xl font-bold" style="color: #E05E0F;">
-                            #<span id="competitorRank">1</span>
-                        </div>
-                        <div class="text-xs text-white/40">Leading</div>
-                    </div>
-                    
-                    <!-- Live Status -->
-                    <div class="text-center">
-                        <div class="text-xs text-white/60 mb-1">Status</div>
-                        <div class="flex items-center justify-center">
-                            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-2"></div>
-                            <span class="text-sm text-white">Live</span>
-                        </div>
-                        <div class="text-xs text-white/40" id="lastUpdate">Now</div>
-                    </div>
+            <!-- Page Header -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-white mb-2">Local SEO Command Center</h1>
+                <p class="text-white/60">Monitor and optimize your local search presence</p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="glass-card rounded-xl p-1 mb-6">
+                <div class="flex flex-wrap gap-1">
+                    <button onclick="window.dashboard.switchLocalSEOTab('gmb')" 
+                            id="tab-gmb"
+                            class="tab-button ${this.localSEOTab === 'gmb' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-map-marker-alt mr-2"></i>GMB Performance
+                    </button>
+                    <button onclick="window.dashboard.switchLocalSEOTab('rankings')" 
+                            id="tab-rankings"
+                            class="tab-button ${this.localSEOTab === 'rankings' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-chart-line mr-2"></i>Local Rankings
+                    </button>
+                    <button onclick="window.dashboard.switchLocalSEOTab('reviews')" 
+                            id="tab-reviews"
+                            class="tab-button ${this.localSEOTab === 'reviews' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-star mr-2"></i>Reviews
+                    </button>
+                    <button onclick="window.dashboard.switchLocalSEOTab('citations')" 
+                            id="tab-citations"
+                            class="tab-button ${this.localSEOTab === 'citations' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-link mr-2"></i>Citations
+                    </button>
+                    <button onclick="window.dashboard.switchLocalSEOTab('competitors')" 
+                            id="tab-competitors"
+                            class="tab-button ${this.localSEOTab === 'competitors' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-users mr-2"></i>Competitors
+                    </button>
+                    <button onclick="window.dashboard.switchLocalSEOTab('insights')" 
+                            id="tab-insights"
+                            class="tab-button ${this.localSEOTab === 'insights' ? 'active' : ''} flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                        <i class="fas fa-lightbulb mr-2"></i>Insights
+                    </button>
                 </div>
             </div>
+
+            <!-- Tab Content Container -->
+            <div id="localSEOTabContent">
+                ${this.renderLocalSEOTabContent()}
+            </div>
+
+            <style>
+                .tab-button {
+                    color: rgba(255, 255, 255, 0.6);
+                    background: transparent;
+                }
+                .tab-button:hover {
+                    color: rgba(255, 255, 255, 0.9);
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                .tab-button.active {
+                    color: #FFFFFF;
+                    background: linear-gradient(135deg, #4D9A88 0%, #4D9A88 100%);
+                    box-shadow: 0 2px 8px rgba(77, 154, 136, 0.3);
+                }
+            </style>
+        `;
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -890,6 +895,626 @@ class EnhancedSEODashboard {
         // Initialize Local SEO specific features
         this.initLocalSEOCharts();
         this.startLocalSEOUpdates();
+        
+        // Setup tab switching
+        window.dashboard = this;
+    }
+
+    // Switch Local SEO Tab
+    switchLocalSEOTab(tab) {
+        this.localSEOTab = tab;
+        
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        
+        // Update content
+        const contentContainer = document.getElementById('localSEOTabContent');
+        if (contentContainer) {
+            contentContainer.innerHTML = this.renderLocalSEOTabContent();
+            
+            // Re-initialize charts if needed
+            if (tab === 'gmb') {
+                setTimeout(() => this.initGMBTabCharts(), 100);
+            } else if (tab === 'rankings') {
+                setTimeout(() => this.initRankingsCharts(), 100);
+            } else if (tab === 'competitors') {
+                setTimeout(() => this.initCompetitorCharts(), 100);
+            }
+        }
+    }
+
+    // Render Local SEO Tab Content
+    renderLocalSEOTabContent() {
+        switch(this.localSEOTab) {
+            case 'gmb':
+                return this.renderGMBPerformanceTab();
+            case 'rankings':
+                return this.renderLocalRankingsTab();
+            case 'reviews':
+                return this.renderReviewsTab();
+            case 'citations':
+                return this.renderCitationsTab();
+            case 'competitors':
+                return this.renderCompetitorsTab();
+            case 'insights':
+                return this.renderInsightsTab();
+            default:
+                return this.renderGMBPerformanceTab();
+        }
+    }
+
+    // Render GMB Performance Tab
+    renderGMBPerformanceTab() {
+        return `
+            <!-- GMB Performance Overview -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                <!-- Key Metrics -->
+                <div class="lg:col-span-1 space-y-4">
+                    <!-- Visibility Score -->
+                    <div class="glass-card rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-white/60">Visibility Score</span>
+                            <button onclick="window.dashboard.refreshGMBData()" class="text-white/40 hover:text-white">
+                                <i class="fas fa-sync-alt text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="text-3xl font-bold text-white mb-1">
+                            <span id="gmbVisibilityScore">87</span>%
+                        </div>
+                        <div class="flex items-center text-xs">
+                            <i class="fas fa-arrow-up text-green-400 mr-1"></i>
+                            <span class="text-green-400">+5.2% this month</span>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/10">
+                            <div class="text-xs text-white/40 mb-1">Industry Avg: 72%</div>
+                            <div class="w-full bg-white/10 rounded-full h-2">
+                                <div class="h-2 rounded-full relative" style="width: 87%; background: linear-gradient(90deg, #4D9A88, #5FBAA8);">
+                                    <div class="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full border-2 border-teal-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Info Status -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h4 class="text-sm font-semibold text-white mb-3">Business Info</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Name</span>
+                                <span class="text-green-400">✓ Verified</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Address</span>
+                                <span class="text-green-400">✓ Accurate</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Phone</span>
+                                <span class="text-green-400">✓ Verified</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Hours</span>
+                                <span class="text-yellow-400">⚠ Update</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Website</span>
+                                <span class="text-green-400">✓ Linked</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="text-white/60">Categories</span>
+                                <span class="text-green-400">✓ Optimal</span>
+                            </div>
+                        </div>
+                        <button onclick="window.dashboard.editGMBInfo()" 
+                                class="w-full mt-3 px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all">
+                            <i class="fas fa-edit mr-1"></i>Edit Info
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Actions Performance -->
+                    <div class="glass-card rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white">Customer Actions</h3>
+                            <select id="gmbPeriod" onchange="window.dashboard.updateGMBPeriod()" 
+                                    class="bg-white/10 text-white text-sm px-3 py-1 rounded border border-white/20">
+                                <option value="7d">Last 7 Days</option>
+                                <option value="30d" selected>Last 30 Days</option>
+                                <option value="90d">Last 90 Days</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-phone text-teal-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-white">289</p>
+                                            <p class="text-xs text-white/60">Phone Calls</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-green-400">+12%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-1 mt-2">
+                                    <div class="h-1 rounded-full" style="width: 75%; background-color: #4D9A88;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-directions text-orange-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-white">456</p>
+                                            <p class="text-xs text-white/60">Directions</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-green-400">+8%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-1 mt-2">
+                                    <div class="h-1 rounded-full" style="width: 85%; background-color: #E05E0F;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-globe text-blue-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-white">1.2K</p>
+                                            <p class="text-xs text-white/60">Website Clicks</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-green-400">+15%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-1 mt-2">
+                                    <div class="h-1 rounded-full" style="width: 92%; background-color: #3B82F6;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white/5 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-envelope text-purple-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-bold text-white">78</p>
+                                            <p class="text-xs text-white/60">Messages</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs text-red-400">-5%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-1 mt-2">
+                                    <div class="h-1 rounded-full" style="width: 45%; background-color: #8B5CF6;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <button onclick="window.dashboard.performGMBScan()" 
+                                    style="background-color: #4D9A88;" 
+                                    class="flex-1 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all">
+                                <i class="fas fa-sync-alt mr-2"></i>Full Scan
+                            </button>
+                            <button onclick="window.dashboard.downloadGMBReport()" 
+                                    style="background-color: #E05E0F;" 
+                                    class="flex-1 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all">
+                                <i class="fas fa-download mr-2"></i>Download Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Views & Discovery -->
+                    <div class="glass-card rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Discovery & Views</h3>
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">8.5K</p>
+                                <p class="text-xs text-white/60">Total Views</p>
+                                <p class="text-xs text-green-400 mt-1">+18% vs last period</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">5.2K</p>
+                                <p class="text-xs text-white/60">Search Views</p>
+                                <p class="text-xs text-green-400 mt-1">+22% vs last period</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-bold text-white">3.3K</p>
+                                <p class="text-xs text-white/60">Maps Views</p>
+                                <p class="text-xs text-green-400 mt-1">+12% vs last period</p>
+                            </div>
+                        </div>
+                        <canvas id="gmbViewsChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="lg:col-span-1 space-y-4">
+                    <!-- Posts Performance -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h4 class="text-sm font-semibold text-white mb-3">Recent Posts</h4>
+                        <div class="space-y-3">
+                            <div class="bg-white/5 rounded-lg p-3">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex-1">
+                                        <p class="text-xs font-medium text-white">Summer Special Offer</p>
+                                        <p class="text-xs text-white/40">2 days ago</p>
+                                    </div>
+                                    <span class="text-xs text-green-400">Active</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs text-white/60">
+                                    <span><i class="fas fa-eye mr-1"></i>523</span>
+                                    <span><i class="fas fa-click mr-1"></i>45</span>
+                                    <span><i class="fas fa-heart mr-1"></i>12</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-lg p-3">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex-1">
+                                        <p class="text-xs font-medium text-white">New Service Launch</p>
+                                        <p class="text-xs text-white/40">1 week ago</p>
+                                    </div>
+                                    <span class="text-xs text-white/40">Ended</span>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs text-white/60">
+                                    <span><i class="fas fa-eye mr-1"></i>892</span>
+                                    <span><i class="fas fa-click mr-1"></i>78</span>
+                                    <span><i class="fas fa-heart mr-1"></i>23</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="window.dashboard.createGMBPost()" 
+                                class="w-full mt-3 px-3 py-2 bg-teal-500/20 text-teal-400 text-xs rounded hover:bg-teal-500/30 transition-all">
+                            <i class="fas fa-plus mr-1"></i>Create New Post
+                        </button>
+                    </div>
+
+                    <!-- Photos & Media -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h4 class="text-sm font-semibold text-white mb-3">Photos & Media</h4>
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="aspect-square bg-white/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-white/40"></i>
+                            </div>
+                            <div class="aspect-square bg-white/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-image text-white/40"></i>
+                            </div>
+                            <div class="aspect-square bg-white/10 rounded-lg flex items-center justify-center">
+                                <span class="text-white/60 text-xs">+12</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-white/60 mb-3">
+                            <p>Total Photos: 45</p>
+                            <p>Customer Photos: 28</p>
+                            <p>Views This Month: 2.3K</p>
+                        </div>
+                        <button onclick="window.dashboard.uploadGMBPhoto()" 
+                                class="w-full px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all">
+                            <i class="fas fa-upload mr-1"></i>Upload Photo
+                        </button>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="glass-card rounded-xl p-4">
+                        <h4 class="text-sm font-semibold text-white mb-3">Quick Actions</h4>
+                        <div class="space-y-2">
+                            <button onclick="window.dashboard.respondToReviews()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-reply mr-2 text-teal-400"></i>Respond to Reviews (3 pending)
+                            </button>
+                            <button onclick="window.dashboard.updateHours()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-clock mr-2 text-orange-400"></i>Update Business Hours
+                            </button>
+                            <button onclick="window.dashboard.addProducts()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-box mr-2 text-blue-400"></i>Add Products/Services
+                            </button>
+                            <button onclick="window.dashboard.messageCustomers()" 
+                                    class="w-full px-3 py-2 bg-white/10 text-white text-xs rounded hover:bg-white/20 transition-all text-left">
+                                <i class="fas fa-comments mr-2 text-purple-400"></i>Message Customers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Performance Section -->
+            <div class="glass-card rounded-xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white">Search Query Performance</h3>
+                    <button onclick="window.dashboard.exportSearchQueries()" class="text-white/60 hover:text-white">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-sm text-white/60 mb-3">Top Search Queries</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-2 bg-white/5 rounded">
+                                <span class="text-sm text-white">plumber near me</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-white/60">1,234 views</span>
+                                    <span class="text-xs text-green-400">+15%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-white/5 rounded">
+                                <span class="text-sm text-white">emergency plumber</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-white/60">892 views</span>
+                                    <span class="text-xs text-green-400">+8%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-white/5 rounded">
+                                <span class="text-sm text-white">24 hour plumber</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-white/60">567 views</span>
+                                    <span class="text-xs text-red-400">-3%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-white/5 rounded">
+                                <span class="text-sm text-white">water heater repair</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-white/60">445 views</span>
+                                    <span class="text-xs text-green-400">+22%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-sm text-white/60 mb-3">Discovery Breakdown</h4>
+                        <canvas id="discoveryChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Render other Local SEO tabs
+    renderLocalRankingsTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Local Rankings</h3>
+                <p class="text-white/60">Local rankings tracking coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderReviewsTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Reviews Management</h3>
+                <p class="text-white/60">Reviews management features coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderCitationsTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Citations & Directories</h3>
+                <p class="text-white/60">Citation tracking coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderCompetitorsTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Competitor Analysis</h3>
+                <p class="text-white/60">Competitor analysis coming soon...</p>
+            </div>
+        `;
+    }
+
+    renderInsightsTab() {
+        return `
+            <div class="glass-card rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">AI Insights & Recommendations</h3>
+                <p class="text-white/60">AI-powered insights coming soon...</p>
+            </div>
+        `;
+    }
+
+    // Initialize GMB Tab Charts
+    initGMBTabCharts() {
+        // Views Chart
+        const viewsCtx = document.getElementById('gmbViewsChart');
+        if (viewsCtx && viewsCtx.getContext) {
+            try {
+                if (this.charts.gmbViewsChart) {
+                    this.charts.gmbViewsChart.destroy();
+                }
+                
+                this.charts.gmbViewsChart = new Chart(viewsCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        datasets: [
+                            {
+                                label: 'Search Views',
+                                data: [1200, 1350, 1400, 1520],
+                                borderColor: '#4D9A88',
+                                backgroundColor: 'rgba(77, 154, 136, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Maps Views',
+                                data: [800, 850, 900, 980],
+                                borderColor: '#E05E0F',
+                                backgroundColor: 'rgba(224, 94, 15, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 11 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 } },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            },
+                            x: {
+                                ticks: { color: 'rgba(255, 255, 255, 0.6)', font: { size: 10 } },
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating GMB views chart:', error);
+            }
+        }
+
+        // Discovery Chart
+        const discoveryCtx = document.getElementById('discoveryChart');
+        if (discoveryCtx && discoveryCtx.getContext) {
+            try {
+                if (this.charts.discoveryChart) {
+                    this.charts.discoveryChart.destroy();
+                }
+                
+                this.charts.discoveryChart = new Chart(discoveryCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Direct Search', 'Discovery Search', 'Branded Search'],
+                        datasets: [{
+                            data: [45, 35, 20],
+                            backgroundColor: [
+                                'rgba(77, 154, 136, 0.8)',
+                                'rgba(224, 94, 15, 0.8)',
+                                'rgba(59, 130, 246, 0.8)'
+                            ],
+                            borderColor: [
+                                '#4D9A88',
+                                '#E05E0F',
+                                '#3B82F6'
+                            ],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 10 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating discovery chart:', error);
+            }
+        }
+    }
+
+    // GMB Action Handlers
+    refreshGMBData() {
+        this.showNotification('Refreshing GMB data...', 'info');
+        setTimeout(() => {
+            this.animateValue('gmbVisibilityScore', 87, 89, 1000);
+            this.showNotification('GMB data refreshed successfully', 'success');
+        }, 1500);
+    }
+
+    editGMBInfo() {
+        this.showNotification('Opening GMB editor...', 'info');
+    }
+
+    downloadGMBReport() {
+        this.showNotification('Generating GMB report...', 'info');
+        setTimeout(() => {
+            this.showNotification('Report downloaded successfully', 'success');
+        }, 2000);
+    }
+
+    createGMBPost() {
+        this.showNotification('Opening post creator...', 'info');
+    }
+
+    uploadGMBPhoto() {
+        this.showNotification('Opening photo uploader...', 'info');
+    }
+
+    respondToReviews() {
+        this.showNotification('Opening review manager...', 'info');
+    }
+
+    updateHours() {
+        this.showNotification('Opening hours editor...', 'info');
+    }
+
+    addProducts() {
+        this.showNotification('Opening products manager...', 'info');
+    }
+
+    messageCustomers() {
+        this.showNotification('Opening messaging center...', 'info');
+    }
+
+    exportSearchQueries() {
+        this.showNotification('Exporting search queries...', 'info');
+        setTimeout(() => {
+            this.showNotification('Search queries exported to CSV', 'success');
+        }, 1500);
+    }
+
+    updateGMBPeriod() {
+        const period = document.getElementById('gmbPeriod').value;
+        this.showNotification(`Updating data for ${period}...`, 'info');
+        setTimeout(() => {
+            this.showNotification('Period updated successfully', 'success');
+        }, 1000);
+    }
+
+    // Initialize other tab charts
+    initRankingsCharts() {
+        // Rankings charts initialization
+    }
+
+    initCompetitorCharts() {
+        // Competitor charts initialization
     }
 
     // Initialize Local SEO Charts
