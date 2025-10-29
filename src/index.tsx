@@ -369,25 +369,55 @@ app.get('/local-seo', (c) => {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
-    <link href="/static/styles.css" rel="stylesheet">
+    <style>
+        :root {
+            --deep-blue: #172B42;
+            --orange-accent: #E05E0F;
+            --teal-highlight: #4D9A88;
+            --white: #FFFFFF;
+        }
+        body {
+            background-color: var(--deep-blue);
+            color: var(--white);
+        }
+        .bg-brand-blue { background-color: var(--deep-blue); }
+        .bg-brand-orange { background-color: var(--orange-accent); }
+        .bg-brand-teal { background-color: var(--teal-highlight); }
+        .text-brand-orange { color: var(--orange-accent); }
+        .text-brand-teal { color: var(--teal-highlight); }
+        .border-brand-orange { border-color: var(--orange-accent); }
+        .border-brand-teal { border-color: var(--teal-highlight); }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body>
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg sticky top-0 z-50">
+    <nav class="glass-card sticky top-0 z-50 border-b border-white/10">
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-blue-600">
-                        <i class="fas fa-map-marked-alt mr-2"></i>
+                    <h1 class="text-2xl font-bold text-white">
+                        <i class="fas fa-map-marked-alt mr-2 text-brand-teal"></i>
                         Local SEO Real-Time Optimizer
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button onclick="toggleAutoRefresh()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    <button onclick="toggleAutoRefresh()" class="bg-brand-orange text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
                         <i class="fas fa-sync-alt mr-2"></i>
                         <span id="autoRefreshStatus">Auto-Refresh: ON</span>
                     </button>
-                    <a href="/" class="text-gray-600 hover:text-gray-800">
+                    <a href="/" class="text-white/80 hover:text-white transition">
                         <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
                     </a>
                 </div>
@@ -396,20 +426,20 @@ app.get('/local-seo', (c) => {
     </nav>
 
     <!-- Real-Time Status Bar -->
-    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3">
+    <div class="bg-gradient-to-r from-brand-teal to-brand-orange py-3">
         <div class="container mx-auto px-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-6">
                     <div class="flex items-center">
                         <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></div>
-                        <span class="text-sm">Live Monitoring Active</span>
+                        <span class="text-sm text-white">Live Monitoring Active</span>
                     </div>
-                    <div class="text-sm">
+                    <div class="text-sm text-white">
                         <i class="fas fa-clock mr-1"></i>
                         Last Update: <span id="lastUpdateTime">--:--:--</span>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4 text-sm">
+                <div class="flex items-center space-x-4 text-sm text-white">
                     <span><i class="fas fa-bell mr-1"></i>Alerts: <span id="alertCount">0</span></span>
                     <span><i class="fas fa-chart-line mr-1"></i>Changes: <span id="changeCount">0</span></span>
                 </div>

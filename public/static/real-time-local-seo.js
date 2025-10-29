@@ -78,37 +78,37 @@ function renderDashboard() {
         <!-- Quick Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- GMB Visibility Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+            <div class="glass-card rounded-xl p-6 hover-lift">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-blue-100 p-3 rounded-lg">
-                        <i class="fas fa-eye text-blue-600 text-xl"></i>
+                    <div class="bg-brand-teal/20 p-3 rounded-lg">
+                        <i class="fas fa-eye text-brand-teal text-xl"></i>
                     </div>
-                    <span id="gmbChange" class="text-green-600">
+                    <span id="gmbChange" class="text-brand-teal">
                         <i class="fas fa-arrow-up mr-1"></i>+2.3%
                     </span>
                 </div>
                 <div class="mb-2">
-                    <h3 class="text-gray-500 text-sm font-medium">GMB Visibility</h3>
+                    <h3 class="text-white/60 text-sm font-medium">GMB Visibility</h3>
                     <div class="flex items-baseline">
-                        <span id="gmbVisibility" class="text-3xl font-bold text-gray-800">82</span>
-                        <span class="text-gray-500 ml-1">%</span>
+                        <span id="gmbVisibility" class="text-3xl font-bold text-white">82</span>
+                        <span class="text-white/60 ml-1">%</span>
                     </div>
                 </div>
                 <canvas id="gmbMiniChart" height="50"></canvas>
             </div>
 
             <!-- Local Pack Rank Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+            <div class="glass-card rounded-xl p-6 hover-lift">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-green-100 p-3 rounded-lg">
-                        <i class="fas fa-map-marker-alt text-green-600 text-xl"></i>
+                    <div class="bg-brand-orange/20 p-3 rounded-lg">
+                        <i class="fas fa-map-marker-alt text-brand-orange text-xl"></i>
                     </div>
-                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Live</span>
+                    <span class="text-xs bg-brand-teal/20 text-brand-teal px-2 py-1 rounded-full">Live</span>
                 </div>
-                <h3 class="text-gray-500 text-sm font-medium mb-2">Local Pack Rank</h3>
+                <h3 class="text-white/60 text-sm font-medium mb-2">Local Pack Rank</h3>
                 <div class="flex items-center justify-between">
-                    <span id="localPackRank" class="text-3xl font-bold text-gray-800">3</span>
-                    <div class="text-sm text-gray-500">
+                    <span id="localPackRank" class="text-3xl font-bold text-white">3</span>
+                    <div class="text-sm text-white/60">
                         <div id="mapPackStatus">Top 3</div>
                         <div id="organicStatus" class="text-xs">Organic: #5</div>
                     </div>
@@ -116,68 +116,68 @@ function renderDashboard() {
             </div>
 
             <!-- Review Score Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+            <div class="glass-card rounded-xl p-6 hover-lift">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-yellow-100 p-3 rounded-lg">
-                        <i class="fas fa-star text-yellow-600 text-xl"></i>
+                    <div class="bg-brand-orange/20 p-3 rounded-lg">
+                        <i class="fas fa-star text-brand-orange text-xl"></i>
                     </div>
-                    <span id="newReviews" class="text-xs text-gray-500">3 new today</span>
+                    <span id="newReviews" class="text-xs text-white/60">3 new today</span>
                 </div>
-                <h3 class="text-gray-500 text-sm font-medium mb-2">Review Score</h3>
+                <h3 class="text-white/60 text-sm font-medium mb-2">Review Score</h3>
                 <div class="flex items-center">
-                    <span id="reviewScore" class="text-3xl font-bold text-gray-800">4.5</span>
+                    <span id="reviewScore" class="text-3xl font-bold text-white">4.5</span>
                     <div class="flex ml-2">
-                        <i class="fas fa-star text-yellow-400 text-sm"></i>
-                        <i class="fas fa-star text-yellow-400 text-sm"></i>
-                        <i class="fas fa-star text-yellow-400 text-sm"></i>
-                        <i class="fas fa-star text-yellow-400 text-sm"></i>
-                        <i class="fas fa-star-half-alt text-yellow-400 text-sm"></i>
+                        <i class="fas fa-star text-brand-orange text-sm"></i>
+                        <i class="fas fa-star text-brand-orange text-sm"></i>
+                        <i class="fas fa-star text-brand-orange text-sm"></i>
+                        <i class="fas fa-star text-brand-orange text-sm"></i>
+                        <i class="fas fa-star-half-alt text-brand-orange text-sm"></i>
                     </div>
                 </div>
-                <div id="reviewCount" class="text-xs text-gray-500 mt-2">342 reviews</div>
+                <div id="reviewCount" class="text-xs text-white/60 mt-2">342 reviews</div>
             </div>
 
             <!-- Citation Score Card -->
-            <div class="bg-white rounded-xl shadow-lg p-6 hover-lift">
+            <div class="glass-card rounded-xl p-6 hover-lift">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="bg-purple-100 p-3 rounded-lg">
-                        <i class="fas fa-link text-purple-600 text-xl"></i>
+                    <div class="bg-brand-teal/20 p-3 rounded-lg">
+                        <i class="fas fa-link text-brand-teal text-xl"></i>
                     </div>
-                    <span id="citationStatus" class="text-green-600">
+                    <span id="citationStatus" class="text-brand-teal">
                         <i class="fas fa-check-circle mr-1"></i>Healthy
                     </span>
                 </div>
-                <h3 class="text-gray-500 text-sm font-medium mb-2">Citation Score</h3>
+                <h3 class="text-white/60 text-sm font-medium mb-2">Citation Score</h3>
                 <div class="mb-2">
-                    <span id="citationScore" class="text-3xl font-bold text-gray-800">85</span>
-                    <span class="text-gray-500 ml-1">%</span>
+                    <span id="citationScore" class="text-3xl font-bold text-white">85</span>
+                    <span class="text-white/60 ml-1">%</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div id="citationBar" class="bg-purple-600 h-2 rounded-full" style="width: 85%"></div>
+                <div class="w-full bg-white/10 rounded-full h-2">
+                    <div id="citationBar" class="bg-brand-teal h-2 rounded-full" style="width: 85%"></div>
                 </div>
             </div>
         </div>
 
         <!-- Tabbed Content -->
-        <div class="bg-white rounded-xl shadow-lg mb-8">
-            <div class="border-b border-gray-200">
+        <div class="glass-card rounded-xl mb-8">
+            <div class="border-b border-white/10">
                 <nav class="flex space-x-8 px-6" aria-label="Tabs">
-                    <button onclick="switchTab('gmb')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 active border-b-2 border-blue-600 text-blue-600">
+                    <button onclick="switchTab('gmb')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal active border-b-2 border-brand-orange text-brand-orange">
                         <i class="fas fa-building mr-2"></i>GMB Insights
                     </button>
-                    <button onclick="switchTab('rankings')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                    <button onclick="switchTab('rankings')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal">
                         <i class="fas fa-chart-line mr-2"></i>Local Rankings
                     </button>
-                    <button onclick="switchTab('competitors')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                    <button onclick="switchTab('competitors')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal">
                         <i class="fas fa-users mr-2"></i>Competitors
                     </button>
-                    <button onclick="switchTab('reviews')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                    <button onclick="switchTab('reviews')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal">
                         <i class="fas fa-star mr-2"></i>Reviews
                     </button>
-                    <button onclick="switchTab('citations')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                    <button onclick="switchTab('citations')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal">
                         <i class="fas fa-link mr-2"></i>Citations
                     </button>
-                    <button onclick="switchTab('alerts')" class="tab-btn py-4 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300">
+                    <button onclick="switchTab('alerts')" class="tab-btn py-4 text-sm font-medium text-white/60 hover:text-white border-b-2 border-transparent hover:border-brand-teal">
                         <i class="fas fa-bell mr-2"></i>Alerts
                     </button>
                 </nav>
@@ -190,21 +190,21 @@ function renderDashboard() {
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <!-- GMB Performance Chart -->
                         <div class="lg:col-span-2">
-                            <h3 class="text-lg font-semibold mb-4">Performance Trends</h3>
-                            <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-4 text-white">Performance Trends</h3>
+                            <div class="glass-card rounded-lg p-4">
                                 <canvas id="gmbPerformanceChart" height="200"></canvas>
                             </div>
                         </div>
                         
                         <!-- Search Queries -->
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Top Search Queries</h3>
-                            <div id="searchQueries" class="space-y-2">
+                            <h3 class="text-lg font-semibold mb-4 text-white">Top Search Queries</h3>
+                            <div id="searchQueries" class="space-y-2 text-white/80">
                                 <!-- Populated by JavaScript -->
                             </div>
                             
-                            <h3 class="text-lg font-semibold mt-6 mb-4">Customer Actions</h3>
-                            <div id="customerActions" class="space-y-2">
+                            <h3 class="text-lg font-semibold mt-6 mb-4 text-white">Customer Actions</h3>
+                            <div id="customerActions" class="space-y-2 text-white/80">
                                 <!-- Populated by JavaScript -->
                             </div>
                         </div>
@@ -214,24 +214,24 @@ function renderDashboard() {
                 <!-- Rankings Tab -->
                 <div id="rankings-tab" class="tab-content hidden">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">Local Search Rankings</h3>
-                        <button onclick="refreshRankings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <h3 class="text-lg font-semibold text-white">Local Search Rankings</h3>
+                        <button onclick="refreshRankings()" class="bg-brand-orange text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
                             <i class="fas fa-sync-alt mr-2"></i>Refresh
                         </button>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                        <table class="min-w-full divide-y divide-white/10">
+                            <thead class="glass-card">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyword</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Map Pack</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organic</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Check</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Keyword</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Location</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Map Pack</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Organic</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Change</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-white/60 uppercase tracking-wider">Last Check</th>
                                 </tr>
                             </thead>
-                            <tbody id="localRankingsTable" class="bg-white divide-y divide-gray-200">
+                            <tbody id="localRankingsTable" class="divide-y divide-white/10">
                                 <!-- Populated by JavaScript -->
                             </tbody>
                         </table>
@@ -242,14 +242,14 @@ function renderDashboard() {
                 <div id="competitors-tab" class="tab-content hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Competitor Visibility</h3>
+                            <h3 class="text-lg font-semibold mb-4 text-white">Competitor Visibility</h3>
                             <div id="competitorList" class="space-y-2">
                                 <!-- Populated by JavaScript -->
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Share of Voice</h3>
-                            <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-4 text-white">Share of Voice</h3>
+                            <div class="glass-card rounded-lg p-4">
                                 <canvas id="shareOfVoiceChart" height="200"></canvas>
                             </div>
                         </div>
@@ -260,14 +260,14 @@ function renderDashboard() {
                 <div id="reviews-tab" class="tab-content hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Recent Reviews</h3>
+                            <h3 class="text-lg font-semibold mb-4 text-white">Recent Reviews</h3>
                             <div id="reviewsFeed" class="space-y-4">
                                 <!-- Populated by JavaScript -->
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">Sentiment Analysis</h3>
-                            <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="text-lg font-semibold mb-4 text-white">Sentiment Analysis</h3>
+                            <div class="glass-card rounded-lg p-4">
                                 <canvas id="sentimentChart" height="150"></canvas>
                             </div>
                         </div>
@@ -276,18 +276,18 @@ function renderDashboard() {
 
                 <!-- Citations Tab -->
                 <div id="citations-tab" class="tab-content hidden">
-                    <h3 class="text-lg font-semibold mb-4">Directory Listings</h3>
+                    <h3 class="text-lg font-semibold mb-4 text-white">Directory Listings</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
-                            <thead class="bg-gray-50">
+                            <thead class="glass-card">
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Directory</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">NAP Consistency</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-white/60 uppercase">Directory</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-white/60 uppercase">Status</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-white/60 uppercase">NAP Consistency</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-white/60 uppercase">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="citationsTable" class="bg-white">
+                            <tbody id="citationsTable" class="divide-y divide-white/10">
                                 <!-- Populated by JavaScript -->
                             </tbody>
                         </table>
@@ -296,7 +296,7 @@ function renderDashboard() {
 
                 <!-- Alerts Tab -->
                 <div id="alerts-tab" class="tab-content hidden">
-                    <h3 class="text-lg font-semibold mb-4">Real-Time Alerts</h3>
+                    <h3 class="text-lg font-semibold mb-4 text-white">Real-Time Alerts</h3>
                     <div id="alertsList" class="space-y-4">
                         <!-- Populated by JavaScript -->
                     </div>
@@ -306,19 +306,19 @@ function renderDashboard() {
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <button onclick="scanGMB()" class="bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+            <button onclick="scanGMB()" class="bg-brand-teal text-white px-4 py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center">
                 <i class="fas fa-search mr-2"></i>Scan GMB
             </button>
-            <button onclick="checkCompetitors()" class="bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition flex items-center justify-center">
+            <button onclick="checkCompetitors()" class="bg-brand-orange text-white px-4 py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center">
                 <i class="fas fa-users mr-2"></i>Check Competitors
             </button>
-            <button onclick="analyzeReviews()" class="bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+            <button onclick="analyzeReviews()" class="bg-brand-teal text-white px-4 py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center">
                 <i class="fas fa-star mr-2"></i>Analyze Reviews
             </button>
-            <button onclick="findCitations()" class="bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition flex items-center justify-center">
+            <button onclick="findCitations()" class="bg-brand-orange text-white px-4 py-3 rounded-lg hover:opacity-90 transition flex items-center justify-center">
                 <i class="fas fa-link mr-2"></i>Find Citations
             </button>
-            <button onclick="refreshRankings()" class="bg-gray-600 text-white px-4 py-3 rounded-lg hover:bg-gray-700 transition flex items-center justify-center">
+            <button onclick="refreshRankings()" class="glass-card text-white px-4 py-3 rounded-lg hover:bg-white/10 transition flex items-center justify-center">
                 <i class="fas fa-sync-alt mr-2"></i>Refresh All
             </button>
         </div>
@@ -343,8 +343,8 @@ function initializeCharts() {
                 labels: generateTimeLabels(12),
                 datasets: [{
                     data: generateRandomData(12, 60, 90),
-                    borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: '#4D9A88',
+                    backgroundColor: 'rgba(77, 154, 136, 0.1)',
                     borderWidth: 2,
                     tension: 0.4,
                     pointRadius: 0
@@ -379,24 +379,24 @@ function initializeCharts() {
                     {
                         label: 'Views',
                         data: generateRandomData(24, 100, 500),
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: '#4D9A88',
+                        backgroundColor: 'rgba(77, 154, 136, 0.1)',
                         borderWidth: 2,
                         tension: 0.4
                     },
                     {
                         label: 'Searches',
                         data: generateRandomData(24, 50, 300),
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderColor: '#E05E0F',
+                        backgroundColor: 'rgba(224, 94, 15, 0.1)',
                         borderWidth: 2,
                         tension: 0.4
                     },
                     {
                         label: 'Actions',
                         data: generateRandomData(24, 10, 100),
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderColor: '#FFFFFF',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         borderWidth: 2,
                         tension: 0.4
                     }
@@ -408,12 +408,21 @@ function initializeCharts() {
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.8)'
+                        }
                     }
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    x: {
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     }
                 }
             }
@@ -433,7 +442,7 @@ function initializeCharts() {
                 labels: ['Your Business', 'Competitor A', 'Competitor B', 'Others'],
                 datasets: [{
                     data: [35, 25, 20, 20],
-                    backgroundColor: ['#3B82F6', '#EF4444', '#F59E0B', '#6B7280'],
+                    backgroundColor: ['#4D9A88', '#E05E0F', '#172B42', 'rgba(255, 255, 255, 0.2)'],
                     borderWidth: 0
                 }]
             },
@@ -442,7 +451,10 @@ function initializeCharts() {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.8)'
+                        }
                     }
                 }
             }
@@ -462,7 +474,7 @@ function initializeCharts() {
                 labels: ['Positive', 'Neutral', 'Negative'],
                 datasets: [{
                     data: [75, 20, 5],
-                    backgroundColor: ['#10B981', '#6B7280', '#EF4444'],
+                    backgroundColor: ['#4D9A88', 'rgba(255, 255, 255, 0.3)', '#E05E0F'],
                     borderWidth: 0
                 }]
             },
@@ -476,7 +488,13 @@ function initializeCharts() {
                 scales: {
                     x: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    },
+                    y: {
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' }
                     }
                 }
             }
@@ -643,25 +661,25 @@ function updateRankings() {
         const change = Math.floor(Math.random() * 5) - 2;
         
         html += `
-            <tr>
-                <td class="px-4 py-3 font-medium">${keyword}</td>
-                <td class="px-4 py-3">${location}</td>
+            <tr class="border-b border-white/5">
+                <td class="px-4 py-3 font-medium text-white">${keyword}</td>
+                <td class="px-4 py-3 text-white/80">${location}</td>
                 <td class="px-4 py-3">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${mapRank <= 3 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${mapRank <= 3 ? 'bg-brand-teal/20 text-brand-teal' : 'bg-white/10 text-white/60'}">
                         #${mapRank}
                     </span>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-orange/20 text-brand-orange">
                         #${organicRank}
                     </span>
                 </td>
                 <td class="px-4 py-3">
-                    ${change > 0 ? `<span class="text-green-600"><i class="fas fa-arrow-up mr-1"></i>${change}</span>` 
-                     : change < 0 ? `<span class="text-red-600"><i class="fas fa-arrow-down mr-1"></i>${Math.abs(change)}</span>`
-                     : '<span class="text-gray-500">–</span>'}
+                    ${change > 0 ? `<span class="text-brand-teal"><i class="fas fa-arrow-up mr-1"></i>${change}</span>` 
+                     : change < 0 ? `<span class="text-brand-orange"><i class="fas fa-arrow-down mr-1"></i>${Math.abs(change)}</span>`
+                     : '<span class="text-white/40">–</span>'}
                 </td>
-                <td class="px-4 py-3 text-xs text-gray-500">Just now</td>
+                <td class="px-4 py-3 text-xs text-white/40">Just now</td>
             </tr>
         `;
     });
@@ -978,10 +996,12 @@ function switchTab(tabName) {
     
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+        btn.classList.remove('active', 'border-b-2', 'border-brand-orange', 'text-brand-orange');
+        btn.classList.add('text-white/60');
     });
     
-    event.target.classList.add('active', 'border-b-2', 'border-blue-600', 'text-blue-600');
+    event.target.classList.remove('text-white/60');
+    event.target.classList.add('active', 'border-b-2', 'border-brand-orange', 'text-brand-orange');
     
     state.currentTab = tabName;
 }
@@ -1074,11 +1094,20 @@ function showAlert(message, type = 'info') {
     
     // You could also show a toast notification here
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-pulse
-        ${type === 'success' ? 'bg-green-600' : type === 'warning' ? 'bg-yellow-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'}`;
+    toast.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-pulse glass-card`;
+    
+    // Use brand colors for different alert types
+    if (type === 'success') {
+        toast.style.borderLeft = '4px solid #4D9A88';
+    } else if (type === 'warning' || type === 'error') {
+        toast.style.borderLeft = '4px solid #E05E0F';
+    } else {
+        toast.style.borderLeft = '4px solid rgba(255, 255, 255, 0.3)';
+    }
+    
     toast.innerHTML = `
         <div class="flex items-center">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'} mr-2"></i>
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'} mr-2 ${type === 'success' ? 'text-brand-teal' : type === 'warning' || type === 'error' ? 'text-brand-orange' : 'text-white/80'}"></i>
             ${message}
         </div>
     `;
