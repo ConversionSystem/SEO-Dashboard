@@ -418,6 +418,38 @@ app.get('/local-seo', (c) => {
             50% { opacity: 0.6; }
             100% { opacity: 1; }
         }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -471,7 +503,7 @@ app.get('/local-seo', (c) => {
         <!-- Content will be dynamically loaded here -->
     </div>
 
-    <script src="/static/real-time-local-seo.js"></script>
+    <script src="/static/real-time-local-seo-v2.js"></script>
 </body>
 </html>
   `)
