@@ -863,6 +863,36 @@ class AdvancedSEOTools {
                     Local SEO Analysis
                 </h3>
                 
+                <!-- New Full Local SEO Tool Button -->
+                <div class="bg-gradient-to-r from-blue-900 to-blue-800 rounded-lg p-6 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-lg font-semibold text-white mb-2">
+                                <i class="fas fa-rocket mr-2"></i>Enhanced Local SEO Tool Available!
+                            </h4>
+                            <p class="text-gray-300 text-sm">
+                                Access our comprehensive Local SEO tool with advanced features:
+                            </p>
+                            <ul class="mt-2 space-y-1 text-sm text-gray-400">
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> Google Map Pack analysis</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> Competitor tracking</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> Citation management</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> Review monitoring</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> GMB optimization</li>
+                                <li><i class="fas fa-check text-green-500 mr-1"></i> Schema markup generator</li>
+                            </ul>
+                        </div>
+                        <div class="text-center">
+                            <button onclick="window.location.href='/local-seo'" 
+                                    class="px-6 py-3 bg-brand-teal text-white rounded-lg hover:opacity-90 transition transform hover:scale-105 font-semibold">
+                                <i class="fas fa-external-link-alt mr-2"></i>Open Full Tool
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-gray-400 mb-4">Or use the quick analysis below:</p>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm mb-2">Business Name</label>
@@ -878,7 +908,7 @@ class AdvancedSEOTools {
                 
                 <button onclick="advancedTools.analyzeLocalSEO()" 
                         class="px-6 py-2 bg-blue-500 text-white rounded hover:opacity-90">
-                    <i class="fas fa-map mr-2"></i>Analyze Local SEO
+                    <i class="fas fa-map mr-2"></i>Quick Analysis
                 </button>
                 
                 <div id="localSEOResults" class="mt-6"></div>

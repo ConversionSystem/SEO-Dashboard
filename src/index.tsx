@@ -5,6 +5,7 @@ import { logger } from 'hono/logger'
 import { DataForSEOService } from './dataforseo-service'
 import { advancedRoutes } from './advanced-routes'
 import { authRoutes } from './auth-routes'
+import { localSEORoutes } from './local-seo-routes'
 import { requireAuth, optionalAuth } from './auth-middleware'
 
 // Types
@@ -37,6 +38,9 @@ app.route('/api/auth', authRoutes)
 
 // Mount advanced SEO routes (protected)
 app.route('/api/seo/advanced', advancedRoutes)
+
+// Mount local SEO routes (protected)
+app.route('/api/seo/local', localSEORoutes)
 
 // API Routes (protected with authentication)
 
@@ -345,6 +349,75 @@ app.get('/', (c) => {
             }
         });
     </script>
+</body>
+</html>
+  `)
+})
+
+// Local SEO page route
+app.get('/local-seo', (c) => {
+  return c.html(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local SEO Tool - Conversion System</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --deep-blue: #172B42;
+            --orange-accent: #E05E0F;
+            --teal-highlight: #4D9A88;
+            --white: #FFFFFF;
+        }
+        
+        body { 
+            background-color: var(--deep-blue);
+            color: white;
+        }
+        
+        .bg-brand-orange { background-color: var(--orange-accent); }
+        .bg-brand-teal { background-color: var(--teal-highlight); }
+        .text-brand-orange { color: var(--orange-accent); }
+        .text-brand-teal { color: var(--teal-highlight); }
+        .border-brand-orange { border-color: var(--orange-accent); }
+        .border-brand-teal { border-color: var(--teal-highlight); }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div id="app"></div>
+    
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    
+    <!-- Local SEO Tool Application -->
+    <script src="/static/local-seo.js"></script>
 </body>
 </html>
   `)

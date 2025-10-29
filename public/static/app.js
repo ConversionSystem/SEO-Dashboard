@@ -116,6 +116,9 @@ class SEODashboard {
                         <button class="nav-tab" data-view="tools">
                             <i class="fas fa-tools mr-2"></i>Advanced Tools
                         </button>
+                        <button class="nav-tab" onclick="window.location.href='/local-seo'">
+                            <i class="fas fa-map-marked-alt mr-2"></i>Local SEO
+                        </button>
                     </div>
                 </div>
             </nav>

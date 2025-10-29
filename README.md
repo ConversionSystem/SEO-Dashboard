@@ -182,6 +182,19 @@ DASHBOARD_API_KEY=your_api_key
 3. Identify keyword gaps and opportunities
 4. Track competitor ranking changes
 
+#### Local SEO Tool (NEW - Dedicated Page)
+1. Access via "Local SEO" button in navigation or through Advanced Tools
+2. Enter business name, location, and category
+3. Features include:
+   - **Overview Dashboard**: Overall scores and insights
+   - **Local Rankings**: Track Map Pack and organic positions
+   - **Map Pack Analysis**: Visual map with competitor locations
+   - **Competitor Tracking**: Detailed competitor analysis
+   - **Citation Management**: Track and manage business listings
+   - **Review Monitoring**: Rating distribution and sentiment
+   - **GMB Optimization**: Checklist and recommendations
+   - **Schema Generator**: Create structured data markup
+
 #### Advanced Tools Tab
 1. Access the "Advanced Tools" tab
 2. Select from 9 specialized SEO tools:
@@ -191,13 +204,25 @@ DASHBOARD_API_KEY=your_api_key
    - **Technical Audit**: Fix site issues
    - **Keyword Clustering**: Organize keywords by topic
    - **SERP Features**: Track rich snippets
-   - **Local SEO**: Monitor local presence
+   - **Local SEO**: Quick analysis + link to full tool
    - **Question Finder**: Discover PAA opportunities
    - **Bulk Analyzer**: Analyze multiple URLs
 
 ## Recent Updates & Fixes
 
-### Authentication & Redirection Fix (Latest)
+### Local SEO Tool (Latest)
+- ✅ Created comprehensive Local SEO sub-page
+- ✅ 8 specialized tabs for local optimization
+- ✅ Real-time business search and competitor analysis
+- ✅ Map Pack rankings tracker
+- ✅ Citation management interface
+- ✅ Review monitoring dashboard
+- ✅ GMB optimization checklist
+- ✅ Schema markup generator
+- ✅ Export reports functionality
+- ✅ Integration with DataForSEO API
+
+### Authentication & Redirection Fix
 - ✅ Fixed login redirection issues
 - ✅ Improved client-side authentication flow  
 - ✅ Added token verification endpoint
