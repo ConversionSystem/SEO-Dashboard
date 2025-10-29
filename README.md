@@ -6,7 +6,7 @@
 - **Features**: Real-time SERP analysis, keyword research, backlink monitoring, competitor analysis, and performance metrics visualization
 
 ## URLs
-- **Production**: https://76ec21b6.seo-dashboard-a7y.pages.dev ✅ LIVE (Latest Deployment)
+- **Production**: https://f6e92d94.seo-dashboard-a7y.pages.dev ✅ LIVE (Fixed - Working)
 - **Production Domain**: https://seo-dashboard-a7y.pages.dev
 - **Custom Domain**: https://tools.conversionsystem.com
 - **Local SEO**: Integrated into main dashboard (accessible via sidebar)
