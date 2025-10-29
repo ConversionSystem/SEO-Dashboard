@@ -584,7 +584,7 @@ function updateMetrics() {
         gmbChangeEl.innerHTML = gmbChange >= 0 
             ? `<i class="fas fa-arrow-up mr-1"></i>+${gmbChange.toFixed(1)}%`
             : `<i class="fas fa-arrow-down mr-1"></i>${gmbChange.toFixed(1)}%`;
-        gmbChangeEl.className = gmbChange >= 0 ? 'text-green-600' : 'text-red-600';
+        gmbChangeEl.style.color = gmbChange >= 0 ? '#4D9A88' : '#E05E0F';
     }
 
     // Update mini chart
@@ -624,6 +624,7 @@ function updateMetrics() {
     const citationBar = document.getElementById('citationBar');
     if (citationBar) {
         citationBar.style.width = `${citationScore}%`;
+        citationBar.style.backgroundColor = '#4D9A88';
     }
 
     // Update status indicators
@@ -707,18 +708,18 @@ function updateReviews() {
     const comment = comments[Math.floor(Math.random() * comments.length)];
     
     const newReview = document.createElement('div');
-    newReview.className = 'border-l-4 border-green-500 pl-4 animate-pulse';
+    newReview.style.cssText = 'border-left: 4px solid #4D9A88; padding-left: 16px; margin-bottom: 16px; animation: pulse 1s;';
     newReview.innerHTML = `
-        <div class="flex items-center justify-between mb-1">
-            <span class="font-semibold">${name}</span>
-            <span class="text-sm text-gray-500">Just now</span>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-weight: 600; color: white;">${name}</span>
+            <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.5);">Just now</span>
         </div>
-        <div class="flex items-center mb-2">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
             ${Array(5).fill('').map((_, i) => 
-                `<i class="fas fa-star ${i < rating ? 'text-yellow-400' : 'text-gray-300'}"></i>`
+                `<i class="fas fa-star" style="color: ${i < rating ? '#E05E0F' : 'rgba(255, 255, 255, 0.2)'}"></i>`
             ).join('')}
         </div>
-        <p class="text-sm text-gray-700">${comment}</p>
+        <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.7);">${comment}</p>
     `;
     
     reviewsFeed.insertBefore(newReview, reviewsFeed.firstChild);
@@ -770,16 +771,24 @@ function addAlert(alert) {
     if (!alertsList) return;
     
     const alertEl = document.createElement('div');
-    alertEl.className = `bg-${alert.type === 'success' ? 'green' : alert.type === 'warning' ? 'yellow' : 'blue'}-50 border-l-4 border-${alert.type === 'success' ? 'green' : alert.type === 'warning' ? 'yellow' : 'blue'}-500 p-4 rounded animate-pulse mb-4`;
+    const borderColor = alert.type === 'success' ? '#4D9A88' : alert.type === 'warning' ? '#E05E0F' : 'rgba(255, 255, 255, 0.3)';
+    alertEl.style.cssText = `
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid ${borderColor};
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        animation: pulse 1s;
+    `;
     alertEl.innerHTML = `
-        <div class="flex items-center justify-between">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div class="font-semibold text-${alert.type === 'success' ? 'green' : alert.type === 'warning' ? 'yellow' : 'blue'}-800">
-                    <i class="fas fa-${alert.icon} mr-2"></i>${alert.title}
+                <div style="font-weight: 600; color: white;">
+                    <i class="fas fa-${alert.icon}" style="margin-right: 8px; color: ${borderColor};"></i>${alert.title}
                 </div>
-                <div class="text-sm text-${alert.type === 'success' ? 'green' : alert.type === 'warning' ? 'yellow' : 'blue'}-600 mt-1">${alert.message}</div>
+                <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.7); margin-top: 4px;">${alert.message}</div>
             </div>
-            <span class="text-xs text-gray-500">Just now</span>
+            <span style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);">Just now</span>
         </div>
     `;
     
@@ -812,14 +821,15 @@ function addAlert(alert) {
 // Load initial data
 async function loadInitialData() {
     try {
-        // Simulate API call with mock data
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Load real data from API
+        const response = await fetch('/api/local-seo/metrics');
+        const data = await response.json();
         
-        // Initialize metrics
-        state.metrics.gmbVisibility = 82;
-        state.metrics.localPackRank = 3;
-        state.metrics.reviewScore = 4.5;
-        state.metrics.citationScore = 85;
+        // Initialize metrics from API
+        state.metrics.gmbVisibility = data.gmbVisibility || 82;
+        state.metrics.localPackRank = data.localPackRank || 3;
+        state.metrics.reviewScore = data.reviewScore || 4.5;
+        state.metrics.citationScore = data.citationScore || 85;
         
         // Update UI
         document.getElementById('gmbVisibility').textContent = state.metrics.gmbVisibility;
@@ -859,9 +869,9 @@ function loadGMBData() {
     const queriesEl = document.getElementById('searchQueries');
     if (queriesEl) {
         queriesEl.innerHTML = searchQueries.map(q => `
-            <div class="flex justify-between items-center">
-                <span class="text-sm">${q.query}</span>
-                <span class="text-xs text-gray-500">${q.count}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);">${q.query}</span>
+                <span style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);">${q.count}</span>
             </div>
         `).join('');
     }
@@ -876,17 +886,17 @@ function loadGMBData() {
     const actionsEl = document.getElementById('customerActions');
     if (actionsEl) {
         actionsEl.innerHTML = `
-            <div class="flex justify-between items-center">
-                <span class="text-sm"><i class="fas fa-phone text-green-600 mr-2"></i>Calls</span>
-                <span class="font-bold">${actions.calls}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);"><i class="fas fa-phone" style="color: #4D9A88; margin-right: 8px;"></i>Calls</span>
+                <span style="font-weight: bold; color: white;">${actions.calls}</span>
             </div>
-            <div class="flex justify-between items-center">
-                <span class="text-sm"><i class="fas fa-directions text-blue-600 mr-2"></i>Directions</span>
-                <span class="font-bold">${actions.directions}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);"><i class="fas fa-directions" style="color: #E05E0F; margin-right: 8px;"></i>Directions</span>
+                <span style="font-weight: bold; color: white;">${actions.directions}</span>
             </div>
-            <div class="flex justify-between items-center">
-                <span class="text-sm"><i class="fas fa-globe text-purple-600 mr-2"></i>Website Clicks</span>
-                <span class="font-bold">${actions.website}</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);"><i class="fas fa-globe" style="color: #4D9A88; margin-right: 8px;"></i>Website Clicks</span>
+                <span style="font-weight: bold; color: white;">${actions.website}</span>
             </div>
         `;
     }
@@ -904,12 +914,12 @@ function loadCompetitors() {
     const competitorList = document.getElementById('competitorList');
     if (competitorList) {
         competitorList.innerHTML = competitors.map(c => `
-            <div class="flex justify-between items-center p-2 ${c.name === 'Your Business' ? 'bg-blue-50 rounded' : ''}">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; ${c.name === 'Your Business' ? 'background: rgba(77, 154, 136, 0.1); border-radius: 8px;' : ''}">
                 <div>
-                    <span class="font-medium">${c.name}</span>
-                    <div class="text-xs text-gray-500">Visibility: ${c.visibility}%</div>
+                    <span style="font-weight: 500; color: white;">${c.name}</span>
+                    <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.5);">Visibility: ${c.visibility}%</div>
                 </div>
-                <span class="${c.trend === 'up' ? 'text-green-600' : c.trend === 'down' ? 'text-red-600' : 'text-gray-500'}">
+                <span style="color: ${c.trend === 'up' ? '#4D9A88' : c.trend === 'down' ? '#E05E0F' : 'rgba(255, 255, 255, 0.5)'}">
                     <i class="fas fa-arrow-${c.trend === 'stable' ? 'right' : c.trend}"></i>
                 </span>
             </div>
@@ -930,11 +940,11 @@ function loadCitations() {
     const citationsTable = document.getElementById('citationsTable');
     if (citationsTable) {
         citationsTable.innerHTML = citations.map(c => `
-            <tr class="border-b">
-                <td class="py-2">${c.directory}</td>
-                <td class="py-2"><span class="text-${c.statusColor}-600">${c.status === 'Listed' ? '✓' : '⏳'} ${c.status}</span></td>
-                <td class="py-2"><span class="text-${c.consistency >= 90 ? 'green' : c.consistency >= 70 ? 'yellow' : 'red'}-600">${c.consistency}%</span></td>
-                <td class="py-2"><button class="text-blue-600 hover:text-blue-800">View</button></td>
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                <td style="padding: 8px; color: white;">${c.directory}</td>
+                <td style="padding: 8px; color: ${c.status === 'Listed' ? '#4D9A88' : '#E05E0F'};">${c.status === 'Listed' ? '✓' : '⏳'} ${c.status}</td>
+                <td style="padding: 8px; color: ${c.consistency >= 90 ? '#4D9A88' : c.consistency >= 70 ? '#E05E0F' : '#E05E0F'};">${c.consistency}%</td>
+                <td style="padding: 8px;"><button style="color: #4D9A88; cursor: pointer;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">View</button></td>
             </tr>
         `).join('');
     }
@@ -996,12 +1006,16 @@ function switchTab(tabName) {
     
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active', 'border-b-2', 'border-brand-orange', 'text-brand-orange');
-        btn.classList.add('text-white/60');
+        btn.classList.remove('active', 'border-b-2');
+        btn.style.borderColor = 'transparent';
+        btn.style.color = 'rgba(255, 255, 255, 0.6)';
     });
     
-    event.target.classList.remove('text-white/60');
-    event.target.classList.add('active', 'border-b-2', 'border-brand-orange', 'text-brand-orange');
+    if (event && event.target) {
+        event.target.classList.add('active', 'border-b-2');
+        event.target.style.borderColor = '#E05E0F';
+        event.target.style.color = '#E05E0F';
+    }
     
     state.currentTab = tabName;
 }
@@ -1014,13 +1028,16 @@ function updateStatusIndicators() {
         const rank = state.metrics.localPackRank;
         if (rank === '-') {
             mapPackEl.textContent = 'Not Ranked';
-            mapPackEl.className = 'font-semibold text-gray-500';
+            mapPackEl.style.color = 'rgba(255, 255, 255, 0.4)';
+            mapPackEl.style.fontWeight = '600';
         } else if (rank <= 3) {
             mapPackEl.textContent = `#${rank} ✓`;
-            mapPackEl.className = 'font-semibold text-green-600';
+            mapPackEl.style.color = '#4D9A88';
+            mapPackEl.style.fontWeight = '600';
         } else {
             mapPackEl.textContent = `#${rank}`;
-            mapPackEl.className = 'font-semibold text-yellow-600';
+            mapPackEl.style.color = '#E05E0F';
+            mapPackEl.style.fontWeight = '600';
         }
     }
     
@@ -1028,8 +1045,10 @@ function updateStatusIndicators() {
     const organicEl = document.getElementById('organicStatus');
     if (organicEl) {
         const organicRank = Math.floor(Math.random() * 10) + 1;
-        organicEl.textContent = `#${organicRank}`;
-        organicEl.className = organicRank <= 5 ? 'font-semibold text-green-600' : 'font-semibold text-blue-600';
+        organicEl.textContent = `Organic: #${organicRank}`;
+        organicEl.style.color = organicRank <= 5 ? '#4D9A88' : 'rgba(255, 255, 255, 0.6)';
+        organicEl.style.fontWeight = '600';
+        organicEl.style.fontSize = '0.75rem';
     }
     
     // Citation Status
@@ -1038,13 +1057,13 @@ function updateStatusIndicators() {
         const score = state.metrics.citationScore;
         if (score >= 80) {
             citationStatusEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Healthy';
-            citationStatusEl.className = 'text-green-600';
+            citationStatusEl.style.color = '#4D9A88';
         } else if (score >= 60) {
             citationStatusEl.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>Fair';
-            citationStatusEl.className = 'text-yellow-600';
+            citationStatusEl.style.color = '#E05E0F';
         } else {
             citationStatusEl.innerHTML = '<i class="fas fa-times-circle mr-1"></i>Needs Attention';
-            citationStatusEl.className = 'text-red-600';
+            citationStatusEl.style.color = '#E05E0F';
         }
     }
 }

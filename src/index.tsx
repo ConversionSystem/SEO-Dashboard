@@ -365,6 +365,20 @@ app.get('/local-seo', (c) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local SEO Real-Time Optimizer - ConversionSystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configure Tailwind with custom colors
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-blue': '#172B42',
+                        'brand-orange': '#E05E0F',
+                        'brand-teal': '#4D9A88'
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
@@ -398,6 +412,11 @@ app.get('/local-seo', (c) => {
         .hover-lift:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
