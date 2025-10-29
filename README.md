@@ -6,7 +6,7 @@
 - **Features**: Real-time SERP analysis, keyword research, backlink monitoring, competitor analysis, and performance metrics visualization
 
 ## URLs
-- **Production**: https://b935c95c.seo-dashboard-a7y.pages.dev ✅ LIVE (Latest Deployment)
+- **Production**: https://092fe165.seo-dashboard-a7y.pages.dev ✅ LIVE (Latest Deployment - Chart Fixes)
 - **Production Domain**: https://seo-dashboard-a7y.pages.dev
 - **Custom Domain**: https://tools.conversionsystem.com
 - **Local SEO Real-Time**: https://seo-dashboard-a7y.pages.dev/local-seo ✅ FIXED & DEPLOYED
@@ -310,7 +310,7 @@ npm run git:status            # Check git status
 ## Deployment Status
 - **Platform**: Cloudflare Pages
 - **Status**: ✅ PRODUCTION DEPLOYED
-- **Live URL**: https://82e1451e.seo-dashboard-a7y.pages.dev
+- **Live URL**: https://092fe165.seo-dashboard-a7y.pages.dev
 - **Tech Stack**: Hono + TypeScript + TailwindCSS + Chart.js
 - **DataForSEO**: ✅ Configured with Production Secrets
 - **Account**: hello@webblex.com
