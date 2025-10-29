@@ -10,5 +10,13 @@ export default defineConfig({
       adapter,
       entry: 'src/index.tsx'
     })
-  ]
+  ],
+  publicDir: 'public',
+  build: {
+    rollupOptions: {
+      input: {
+        '_worker': 'src/index.tsx'
+      }
+    }
+  }
 })
