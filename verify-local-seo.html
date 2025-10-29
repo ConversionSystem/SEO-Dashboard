@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local SEO System Verification</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto;
+        }
+        .status { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb;
+        }
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            border: 1px solid #bee5eb;
+        }
+        .endpoint-test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Local SEO Monitoring System Verification</h1>
+    
+    <div id="status"></div>
+    
+    <h2>Step 1: Check API Endpoints</h2>
+    <div id="api-tests"></div>
+    
+    <h2>Step 2: Dashboard Functionality</h2>
+    <div id="dashboard-test"></div>
+    
+    <h2>Step 3: Direct Access Links</h2>
+    <div id="links"></div>
+    
+    <h2>Actions</h2>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="testAPIs()">Test APIs Only</button>
+    <button onclick="window.open('/local-seo', '_blank')">Open Local SEO Dashboard</button>
+    
+    <script>
+        const BASE_URL = window.location.origin;
+        
+        function log(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `${new Date().toLocaleTimeString()} - ${message}`;
+            statusDiv.appendChild(div);
+        }
+        
+        async function testEndpoint(path, name) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'endpoint-test';
+            
+            try {
+                log(`Testing ${name}...`, 'info');
+                const response = await fetch(`${BASE_URL}${path}`);
+                const data = await response.json();
+                
+                testDiv.innerHTML = `
+                    <h3>✅ ${name}</h3>
+                    <p><strong>Endpoint:</strong> ${path}</p>
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>Response Keys:</strong> ${Object.keys(data).join(', ')}</p>
+                    <details>
+                        <summary>View Response Data</summary>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </details>
+                `;
+                
+                log(`✅ ${name} - Working`, 'success');
+                return { success: true, data };
+            } catch (error) {
+                testDiv.innerHTML = `
+                    <h3>❌ ${name}</h3>
+                    <p><strong>Endpoint:</strong> ${path}</p>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                
+                log(`❌ ${name} - ${error.message}`, 'error');
+                return { success: false, error: error.message };
+            } finally {
+                document.getElementById('api-tests').appendChild(testDiv);
+            }
+        }
+        
+        async function testAPIs() {
+            document.getElementById('api-tests').innerHTML = '';
+            log('Starting API tests...', 'info');
+            
+            const endpoints = [
+                { path: '/api/local-seo/metrics', name: 'Real-Time Metrics' },
+                { path: '/api/local-seo/gmb/insights', name: 'GMB Insights' },
+                { path: '/api/local-seo/rankings/local', name: 'Local Rankings' },
+                { path: '/api/local-seo/competitors', name: 'Competitor Tracking' },
+                { path: '/api/local-seo/reviews/monitor', name: 'Reviews Monitor' },
+                { path: '/api/local-seo/citations/monitor', name: 'Citations Monitor' },
+                { path: '/api/local-seo/alerts', name: 'Real-Time Alerts' }
+            ];
+            
+            let successCount = 0;
+            for (const endpoint of endpoints) {
+                const result = await testEndpoint(endpoint.path, endpoint.name);
+                if (result.success) successCount++;
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            log(`API Tests Complete: ${successCount}/${endpoints.length} passed`, 
+                successCount === endpoints.length ? 'success' : 'error');
+            
+            return successCount === endpoints.length;
+        }
+        
+        async function testDashboard() {
+            const testDiv = document.getElementById('dashboard-test');
+            log('Testing dashboard page...', 'info');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/local-seo`);
+                const html = await response.text();
+                
+                const checks = {
+                    'Page Title': html.includes('Local SEO Real-Time Optimizer'),
+                    'App Container': html.includes('id="app"'),
+                    'JavaScript File': html.includes('real-time-local-seo.js'),
+                    'Chart.js Library': html.includes('chart.js'),
+                    'Tailwind CSS': html.includes('tailwindcss'),
+                    'Navigation Bar': html.includes('nav')
+                };
+                
+                let checkResults = '<h3>Dashboard Page Checks:</h3><ul>';
+                let allPassed = true;
+                
+                for (const [check, passed] of Object.entries(checks)) {
+                    checkResults += `<li>${passed ? '✅' : '❌'} ${check}</li>`;
+                    if (!passed) allPassed = false;
+                }
+                
+                checkResults += '</ul>';
+                
+                testDiv.innerHTML = checkResults;
+                
+                if (allPassed) {
+                    log('✅ Dashboard page structure is correct', 'success');
+                    
+                    // Test if JavaScript loads
+                    testDiv.innerHTML += `
+                        <h4>JavaScript Functionality Test:</h4>
+                        <iframe src="/local-seo" width="100%" height="400" style="border: 1px solid #ddd;"></iframe>
+                        <p><em>The dashboard should load above. If you see content, the system is working!</em></p>
+                    `;
+                } else {
+                    log('❌ Dashboard page has issues', 'error');
+                }
+                
+                return allPassed;
+            } catch (error) {
+                testDiv.innerHTML = `<p class="error">Error testing dashboard: ${error.message}</p>`;
+                log(`❌ Dashboard test failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        function generateLinks() {
+            const linksDiv = document.getElementById('links');
+            const publicUrl = window.location.hostname.includes('sandbox') 
+                ? window.location.origin 
+                : 'http://localhost:3000';
+            
+            linksDiv.innerHTML = `
+                <h3>Access URLs:</h3>
+                <ul>
+                    <li><strong>Local SEO Dashboard:</strong> <a href="${publicUrl}/local-seo" target="_blank">${publicUrl}/local-seo</a></li>
+                    <li><strong>Main Dashboard:</strong> <a href="${publicUrl}/" target="_blank">${publicUrl}/</a></li>
+                    <li><strong>Login Page:</strong> <a href="${publicUrl}/login" target="_blank">${publicUrl}/login</a></li>
+                </ul>
+                
+                <h3>API Endpoints (JSON):</h3>
+                <ul>
+                    <li><a href="${publicUrl}/api/local-seo/metrics" target="_blank">Real-Time Metrics</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/gmb/insights" target="_blank">GMB Insights</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/rankings/local" target="_blank">Local Rankings</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/competitors" target="_blank">Competitors</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/reviews/monitor" target="_blank">Reviews</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/citations/monitor" target="_blank">Citations</a></li>
+                    <li><a href="${publicUrl}/api/local-seo/alerts" target="_blank">Alerts</a></li>
+                </ul>
+            `;
+        }
+        
+        async function runAllTests() {
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('api-tests').innerHTML = '';
+            document.getElementById('dashboard-test').innerHTML = '';
+            
+            log('🚀 Starting comprehensive system test...', 'info');
+            
+            // Test APIs
+            const apisWorking = await testAPIs();
+            
+            // Test Dashboard
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const dashboardWorking = await testDashboard();
+            
+            // Generate links
+            generateLinks();
+            
+            // Final summary
+            if (apisWorking && dashboardWorking) {
+                log('🎉 All systems operational! Local SEO Monitoring is working correctly.', 'success');
+            } else {
+                log('⚠️ Some components need attention. Check the errors above.', 'error');
+            }
+        }
+        
+        // Run tests on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Verification page loaded. Click "Run All Tests" to begin.', 'info');
+            generateLinks();
+        });
+    </script>
+</body>
+</html>

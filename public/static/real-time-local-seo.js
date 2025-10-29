@@ -34,12 +34,39 @@ let updateIntervals = {};
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing Real-Time Local SEO Monitor...');
-    renderDashboard();
-    initializeCharts();
-    startRealTimeUpdates();
-    loadInitialData();
-    setupEventListeners();
-    updateLastUpdateTime();
+    
+    try {
+        // Check if required libraries are loaded
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded!');
+            showAlert('Chart.js library not loaded. Charts will not display.', 'error');
+        }
+        
+        console.log('Rendering dashboard...');
+        renderDashboard();
+        
+        console.log('Initializing charts...');
+        setTimeout(() => {
+            initializeCharts();
+        }, 100); // Small delay to ensure DOM is ready
+        
+        console.log('Starting real-time updates...');
+        startRealTimeUpdates();
+        
+        console.log('Loading initial data...');
+        loadInitialData();
+        
+        console.log('Setting up event listeners...');
+        setupEventListeners();
+        
+        console.log('Updating last update time...');
+        updateLastUpdateTime();
+        
+        console.log('Initialization complete!');
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        showAlert('Error initializing dashboard: ' + error.message, 'error');
+    }
 });
 
 // Render the dashboard HTML structure
@@ -300,10 +327,17 @@ function renderDashboard() {
 
 // Initialize all charts
 function initializeCharts() {
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not available, skipping chart initialization');
+        return;
+    }
+    
     // GMB Mini Chart
     const gmbCtx = document.getElementById('gmbMiniChart');
-    if (gmbCtx) {
-        window.gmbMiniChart = new Chart(gmbCtx, {
+    if (gmbCtx && gmbCtx.getContext) {
+        try {
+            window.gmbMiniChart = new Chart(gmbCtx, {
             type: 'line',
             data: {
                 labels: generateTimeLabels(12),
@@ -328,12 +362,16 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error('Error creating GMB mini chart:', error);
+        }
     }
 
     // GMB Performance Chart
     const perfCtx = document.getElementById('gmbPerformanceChart');
-    if (perfCtx) {
-        window.gmbPerformanceChart = new Chart(perfCtx, {
+    if (perfCtx && perfCtx.getContext) {
+        try {
+            window.gmbPerformanceChart = new Chart(perfCtx, {
             type: 'line',
             data: {
                 labels: generateTimeLabels(24),
@@ -380,12 +418,16 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error('Error creating GMB performance chart:', error);
+        }
     }
 
     // Share of Voice Chart
     const sovCtx = document.getElementById('shareOfVoiceChart');
-    if (sovCtx) {
-        window.shareOfVoiceChart = new Chart(sovCtx, {
+    if (sovCtx && sovCtx.getContext) {
+        try {
+            window.shareOfVoiceChart = new Chart(sovCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Your Business', 'Competitor A', 'Competitor B', 'Others'],
@@ -405,12 +447,16 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error('Error creating share of voice chart:', error);
+        }
     }
 
     // Sentiment Chart
     const sentCtx = document.getElementById('sentimentChart');
-    if (sentCtx) {
-        window.sentimentChart = new Chart(sentCtx, {
+    if (sentCtx && sentCtx.getContext) {
+        try {
+            window.sentimentChart = new Chart(sentCtx, {
             type: 'bar',
             data: {
                 labels: ['Positive', 'Neutral', 'Negative'],
@@ -435,7 +481,12 @@ function initializeCharts() {
                 }
             }
         });
+        } catch (error) {
+            console.error('Error creating sentiment chart:', error);
+        }
     }
+    
+    console.log('Charts initialization completed');
 }
 
 // Start real-time updates
@@ -1047,6 +1098,15 @@ function setupEventListeners() {
     // Add any additional event listeners here
     console.log('Event listeners setup complete');
 }
+
+// Export functions to global scope for HTML onclick handlers
+window.toggleAutoRefresh = toggleAutoRefresh;
+window.switchTab = switchTab;
+window.scanGMB = scanGMB;
+window.checkCompetitors = checkCompetitors;
+window.analyzeReviews = analyzeReviews;
+window.findCitations = findCitations;
+window.refreshRankings = refreshRankings;
 
 // Export for use in other modules if needed
 if (typeof module !== 'undefined' && module.exports) {

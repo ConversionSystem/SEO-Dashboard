@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local SEO Debug Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app" class="container mx-auto px-6 py-8">
+        <!-- Content will be loaded here -->
+    </div>
+
+    <script>
+        console.log('Starting debug test...');
+        
+        // Check if dependencies are loaded
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        console.log('Axios loaded:', typeof axios !== 'undefined');
+        
+        // Try loading the script
+        const script = document.createElement('script');
+        script.src = 'http://localhost:3000/static/real-time-local-seo.js';
+        script.onload = function() {
+            console.log('Script loaded successfully');
+        };
+        script.onerror = function() {
+            console.error('Failed to load script');
+        };
+        document.body.appendChild(script);
+        
+        // Also try fetching directly
+        fetch('http://localhost:3000/static/real-time-local-seo.js')
+            .then(response => {
+                console.log('Script fetch status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                console.log('Script length:', text.length);
+                console.log('Script starts with:', text.substring(0, 100));
+            })
+            .catch(error => {
+                console.error('Script fetch error:', error);
+            });
+    </script>
+</body>
+</html>
